@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: barry-gym-whatsapp-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python auto_reply_cloud.py
+    envVars:
+      - key: ULTRAMSG_INSTANCE
+        value: instance169328
+      - key: ULTRAMSG_TOKEN
+        value: ifk8d1jpsnl540eb
+      - key: GYM_NAME
+        value: Barry's Gym
+      - key: GYM_PHONE
+        value: "60122201096"
+      - key: GYM_HOURS_WEEKDAY
+        value: "6:00am - 10:00pm"
+      - key: GYM_HOURS_WEEKEND
+        value: "7:00am - 8:00pm"
+      - key: GYM_PRICE_REGULAR
+        value: RM 100/month
+      - key: GYM_PRICE_STUDENT
+        value: RM 60/month
