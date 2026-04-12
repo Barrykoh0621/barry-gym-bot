@@ -23,6 +23,12 @@ GYM_HOURS_WEEKEND = os.environ.get("GYM_HOURS_WEEKEND", "7:00am - 8:00pm")
 GYM_PRICE_REGULAR = os.environ.get("GYM_PRICE_REGULAR", "RM 100/month")
 GYM_PRICE_STUDENT = os.environ.get("GYM_PRICE_STUDENT", "RM 60/month")
 
+# Payment info - set these in Render.com environment variables
+BANK_NAME         = os.environ.get("BANK_NAME", "Maybank")
+BANK_ACCOUNT      = os.environ.get("BANK_ACCOUNT", "XXXX-XXXX-XXXX")
+BANK_HOLDER       = os.environ.get("BANK_HOLDER", "Barry Gym")
+QR_CODE_IMAGE_URL = os.environ.get("QR_CODE_IMAGE_URL", "")
+
 # ============================================================
 # KEYWORDS & REPLIES (English only)
 # ============================================================
@@ -35,6 +41,7 @@ KEYWORDS = {
     "sign up": "join", "new member": "join", "membership": "join",
     "renew": "renew", "renewal": "renew", "extend": "renew",
     "location": "location", "where": "location", "address": "location",
+    "map": "location", "direction": "location",
 }
 
 REPLIES = {
@@ -42,8 +49,8 @@ REPLIES = {
         f"Hi! Thank you for your interest in *{GYM_NAME}*! 💪\n\n"
         f"*Membership Prices:*\n"
         f"• Regular: *{GYM_PRICE_REGULAR}*\n"
-        f"• Student: *{GYM_PRICE_STUDENT}*\n\n"
-        f"Reply *JOIN* to sign up, or contact us at {GYM_PHONE}!"
+        f"• Student: *{GYM_PRICE_STUDENT}* (student card required)\n\n"
+        f"Reply *JOIN* to sign up, or call us: *{GYM_PHONE}* 😊"
     ),
     "hours": (
         f"*{GYM_NAME}* Operating Hours:\n\n"
@@ -54,39 +61,45 @@ REPLIES = {
     ),
     "join": (
         f"Welcome to *{GYM_NAME}*! 🎉\n\n"
-        f"*To join, visit us with your IC.*\n\n"
+        f"To join, visit us and bring your *IC (MyKad)*.\n\n"
         f"*Membership Plans:*\n"
         f"• Regular: *{GYM_PRICE_REGULAR}*\n"
         f"• Student: *{GYM_PRICE_STUDENT}* (student card required)\n\n"
         f"*Opening Hours:*\n"
         f"Mon-Fri: {GYM_HOURS_WEEKDAY}\n"
         f"Sat-Sun: {GYM_HOURS_WEEKEND}\n\n"
-        f"Call us: {GYM_PHONE} 🏋️"
+        f"Call us: *{GYM_PHONE}* 🏋️"
     ),
     "renew": (
-        f"Hi! To renew your *{GYM_NAME}* membership:\n\n"
-        f"1. Visit us at the gym, OR\n"
-        f"2. Call/WhatsApp: *{GYM_PHONE}*\n\n"
+        f"Hi! Ready to renew your *{GYM_NAME}* membership? 💪\n\n"
         f"*Renewal Prices:*\n"
         f"• Regular: *{GYM_PRICE_REGULAR}*\n"
         f"• Student: *{GYM_PRICE_STUDENT}*\n\n"
-        f"We'll sort you out quickly! 💪"
+        f"─────────────────\n"
+        f"💳 *Pay via Online Transfer:*\n"
+        f"Bank: *{BANK_NAME}*\n"
+        f"Account: *{BANK_ACCOUNT}*\n"
+        f"Name: *{BANK_HOLDER}*\n"
+        f"Ref: *Your name*\n\n"
+        f"After payment, send your *receipt screenshot* here.\n"
+        f"─────────────────\n\n"
+        f"Or visit / call us: *{GYM_PHONE}* 🏋️"
     ),
     "location": (
-        f"*{GYM_NAME}* is located in Seremban, Negeri Sembilan.\n\n"
-        f"📍 For exact directions, call us at *{GYM_PHONE}* and we'll guide you! 🏋️"
+        f"📍 *{GYM_NAME}* — Seremban, Negeri Sembilan\n\n"
+        f"For exact directions, WhatsApp or call us:\n"
+        f"*{GYM_PHONE}* and we'll guide you here! 🏋️"
     ),
 }
 
 DEFAULT_REPLY = (
     f"Hi! Welcome to *{GYM_NAME}*! 🏋️\n\n"
-    f"How can we help you?\n\n"
-    f"Type any keyword:\n"
-    f"• *PRICE* - Membership prices\n"
-    f"• *HOURS* - Operating hours\n"
-    f"• *JOIN* - New membership\n"
-    f"• *RENEW* - Renew membership\n"
-    f"• *LOCATION* - Find us\n\n"
+    f"How can we help you? Reply with a keyword:\n\n"
+    f"• *PRICE* — Membership prices\n"
+    f"• *HOURS* — Operating hours\n"
+    f"• *JOIN* — New membership\n"
+    f"• *RENEW* — Renew membership\n"
+    f"• *LOCATION* — Find us\n\n"
     f"Or call/WhatsApp: *{GYM_PHONE}*"
 )
 
@@ -98,12 +111,20 @@ def send_reply(phone, message):
     return r.status_code, r.json()
 
 
-def get_reply(text):
+def send_image(phone, image_url, caption=""):
+    """Send QR code or image via UltraMsg."""
+    url     = f"{ULTRAMSG_API_URL}/messages/image"
+    payload = {"token": ULTRAMSG_TOKEN, "to": phone, "image": image_url,
+               "caption": caption, "priority": 1}
+    requests.post(url, data=payload, timeout=10)
+
+
+def get_reply_category(text):
     text_lower = text.strip().lower()
     for keyword, category in KEYWORDS.items():
         if keyword in text_lower:
-            return REPLIES[category]
-    return DEFAULT_REPLY
+            return category
+    return None
 
 
 class WebhookHandler(BaseHTTPRequestHandler):
@@ -111,7 +132,7 @@ class WebhookHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(f"{GYM_NAME} WhatsApp Bot is running!".encode())
+        self.wfile.write(f"{GYM_NAME} WhatsApp Bot is LIVE! ✅".encode())
 
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
@@ -123,10 +144,17 @@ class WebhookHandler(BaseHTTPRequestHandler):
             msg_type = msg_data.get("type", "")
             body_txt = msg_data.get("body", "")
 
+            # Only reply to individual chat messages (not group, not from self)
             if msg_type == "chat" and body_txt and "@g.us" not in from_num:
-                print(f"[{datetime.now().strftime('%H:%M:%S')}] From {from_num}: {body_txt}")
-                reply = get_reply(body_txt)
+                print(f"[{datetime.now().strftime('%H:%M:%S')}] MSG from {from_num}: {body_txt}")
+                category = get_reply_category(body_txt)
+                reply    = REPLIES.get(category, DEFAULT_REPLY) if category else DEFAULT_REPLY
                 send_reply(from_num, reply)
+
+                # If asking about renew AND QR code is configured → send QR image too
+                if category == "renew" and QR_CODE_IMAGE_URL:
+                    send_image(from_num, QR_CODE_IMAGE_URL,
+                               f"Scan to pay — {BANK_NAME} ({BANK_HOLDER})")
 
         except Exception as e:
             print(f"Error: {e}")
@@ -136,10 +164,14 @@ class WebhookHandler(BaseHTTPRequestHandler):
         self.wfile.write(b"OK")
 
     def log_message(self, format, *args):
-        pass
+        pass  # suppress default server logs
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    print(f"{GYM_NAME} WhatsApp Bot running on port {port}...")
+    print(f"{'='*50}")
+    print(f"{GYM_NAME} WhatsApp Auto-Reply Bot")
+    print(f"Running on port {port}...")
+    print(f"Bank: {BANK_NAME} | Acc: {BANK_ACCOUNT}")
+    print(f"{'='*50}")
     HTTPServer(("0.0.0.0", port), WebhookHandler).serve_forever()
