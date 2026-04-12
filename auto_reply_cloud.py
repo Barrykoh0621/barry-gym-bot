@@ -24,8 +24,8 @@ GYM_PRICE_REGULAR = os.environ.get("GYM_PRICE_REGULAR", "RM 100/month")
 GYM_PRICE_STUDENT = os.environ.get("GYM_PRICE_STUDENT", "RM 60/month")
 
 # Payment info - set these in Render.com environment variables
-BANK_NAME         = os.environ.get("BANK_NAME", "Maybank")
-BANK_ACCOUNT      = os.environ.get("BANK_ACCOUNT", "XXXX-XXXX-XXXX")
+BANK_NAME         = os.environ.get("BANK_NAME", "Public Bank")
+BANK_ACCOUNT      = os.environ.get("BANK_ACCOUNT", "6474752824")
 BANK_HOLDER       = os.environ.get("BANK_HOLDER", "Barry Gym")
 QR_CODE_IMAGE_URL = os.environ.get("QR_CODE_IMAGE_URL", "")
 

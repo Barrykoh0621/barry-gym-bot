@@ -22,9 +22,9 @@ services:
       - key: GYM_PRICE_STUDENT
         value: RM 60/month
       - key: BANK_NAME
-        value: Maybank
+        value: Public Bank
       - key: BANK_ACCOUNT
-        value: XXXX-XXXX-XXXX
+        value: "6474752824"
       - key: BANK_HOLDER
         value: Barry Gym
       - key: QR_CODE_IMAGE_URL
