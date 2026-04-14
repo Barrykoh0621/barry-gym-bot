@@ -119,9 +119,11 @@ def send_image(phone, image_url, caption=""):
     requests.post(url, data=payload, timeout=10)
 
 
-# Track recent replies: {phone: last_reply_time}
-# Prevent replying more than once per 5 min unless keyword used
-_reply_tracker = {}
+GREETINGS = {"hi", "hello", "hey", "helo", "hai", "haii", "ello", "yo",
+             "assalamualaikum", "slm", "hi there", "good morning", "good afternoon"}
+
+def is_greeting(text):
+    return text.strip().lower() in GREETINGS
 
 def get_reply_category(text):
     text_lower = text.strip().lower()
@@ -129,11 +131,6 @@ def get_reply_category(text):
         if keyword in text_lower:
             return category
     return None
-
-
-def is_greeting(text):
-    greetings = ["hi", "hello", "hey", "helo", "hai", "haii", "ello", "yo", "assalamualaikum", "slm"]
-    return text.strip().lower() in greetings
 
 
 class WebhookHandler(BaseHTTPRequestHandler):
@@ -151,9 +148,9 @@ class WebhookHandler(BaseHTTPRequestHandler):
             msg_data = data.get("data", {})
             from_num = msg_data.get("from", "")
             msg_type = msg_data.get("type", "")
-            body_txt = msg_data.get("body", "")
+            body_txt = msg_data.get("body", "").strip()
 
-            # Skip: groups, empty, own number
+            # Skip: groups, empty messages
             if not (msg_type == "chat" and body_txt and "@g.us" not in from_num):
                 self.send_response(200)
                 self.end_headers()
@@ -161,34 +158,28 @@ class WebhookHandler(BaseHTTPRequestHandler):
                 return
 
             # Skip messages from the gym's own number (prevent loop)
-            if GYM_PHONE in from_num or from_num.replace("+", "").replace(" ", "") == GYM_PHONE:
+            if GYM_PHONE in from_num:
                 self.send_response(200)
                 self.end_headers()
                 self.wfile.write(b"OK")
                 return
 
             print(f"[{datetime.now().strftime('%H:%M:%S')}] MSG from {from_num}: {body_txt}")
+
             category = get_reply_category(body_txt)
-            now      = datetime.now()
-            last_reply = _reply_tracker.get(from_num)
 
-            # Reply if: keyword matched, OR greeting, OR first message (no recent reply)
-            should_reply = (
-                category is not None or
-                is_greeting(body_txt) or
-                last_reply is None or
-                (now - last_reply).seconds > 300  # 5 min cooldown for non-keyword
-            )
+            # ONLY reply if: greeting OR keyword match — nothing else
+            if is_greeting(body_txt):
+                send_reply(from_num, DEFAULT_REPLY)
 
-            if should_reply:
-                reply = REPLIES.get(category, DEFAULT_REPLY) if category else DEFAULT_REPLY
+            elif category is not None:
+                reply = REPLIES[category]
                 send_reply(from_num, reply)
-                _reply_tracker[from_num] = now
-
-                # If asking about renew AND QR code is configured → send QR image too
                 if category == "renew" and QR_CODE_IMAGE_URL:
                     send_image(from_num, QR_CODE_IMAGE_URL,
                                f"Scan to pay — {BANK_NAME} ({BANK_HOLDER})")
+
+            # All other messages → ignored (no auto reply)
 
         except Exception as e:
             print(f"Error: {e}")
