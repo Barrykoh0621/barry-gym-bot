@@ -17,7 +17,7 @@ ULTRAMSG_TOKEN    = os.environ.get("ULTRAMSG_TOKEN", "ifk8d1jpsnl540eb")
 ULTRAMSG_API_URL  = f"https://api.ultramsg.com/{ULTRAMSG_INSTANCE}"
 
 GYM_NAME          = os.environ.get("GYM_NAME", "Barry's Gym")
-GYM_PHONE         = os.environ.get("GYM_PHONE", "601139125608")
+GYM_PHONE         = os.environ.get("GYM_PHONE", "60122201096")
 GYM_HOURS_WEEKDAY = os.environ.get("GYM_HOURS_WEEKDAY", "6:00am - 10:00pm")
 GYM_HOURS_WEEKEND = os.environ.get("GYM_HOURS_WEEKEND", "7:00am - 8:00pm")
 GYM_PRICE_REGULAR = os.environ.get("GYM_PRICE_REGULAR", "RM 100/month")

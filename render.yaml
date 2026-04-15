@@ -12,7 +12,7 @@ services:
       - key: GYM_NAME
         value: Barry's Gym
       - key: GYM_PHONE
-        value: "601139125608"
+        value: "60122201096"
       - key: GYM_HOURS_WEEKDAY
         value: "6:00am - 10:00pm"
       - key: GYM_HOURS_WEEKEND
