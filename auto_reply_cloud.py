@@ -18,10 +18,11 @@ ULTRAMSG_API_URL  = f"https://api.ultramsg.com/{ULTRAMSG_INSTANCE}"
 
 GYM_NAME          = os.environ.get("GYM_NAME", "Barry's Gym")
 GYM_PHONE         = os.environ.get("GYM_PHONE", "60122201096")
-GYM_HOURS_WEEKDAY = os.environ.get("GYM_HOURS_WEEKDAY", "6:00am - 10:00pm")
-GYM_HOURS_WEEKEND = os.environ.get("GYM_HOURS_WEEKEND", "7:00am - 8:00pm")
-GYM_PRICE_REGULAR = os.environ.get("GYM_PRICE_REGULAR", "RM 100/month")
-GYM_PRICE_STUDENT = os.environ.get("GYM_PRICE_STUDENT", "RM 60/month")
+GYM_HOURS         = os.environ.get("GYM_HOURS", "7:00am - 10:00pm")
+GYM_PRICE         = os.environ.get("GYM_PRICE", "RM 60/month")
+GYM_REG_FEE       = os.environ.get("GYM_REG_FEE", "RM 90")
+GYM_REG_FEE_STUDENT = os.environ.get("GYM_REG_FEE_STUDENT", "RM 60")
+GYM_LOCATION      = os.environ.get("GYM_LOCATION", "Palm Mall, Seremban")
 
 # Payment info - set these in Render.com environment variables
 BANK_NAME         = os.environ.get("BANK_NAME", "Public Bank")
@@ -46,35 +47,34 @@ KEYWORDS = {
 
 REPLIES = {
     "pricing": (
-        f"Hi! Thank you for your interest in *{GYM_NAME}*! 💪\n\n"
-        f"*Membership Prices:*\n"
-        f"• Regular: *{GYM_PRICE_REGULAR}*\n"
-        f"• Student: *{GYM_PRICE_STUDENT}* (student card required)\n\n"
-        f"Reply *JOIN* to sign up, or call us: *{GYM_PHONE}* 😊"
+        f"Hi! Here are *{GYM_NAME}* membership details 💪\n\n"
+        f"*Monthly Fee:*\n"
+        f"• RM 60/month (all members)\n\n"
+        f"*Registration Fee:*\n"
+        f"• Regular: *{GYM_REG_FEE}* (one-time)\n"
+        f"• Student: *{GYM_REG_FEE_STUDENT}* (one-time, student card required)\n\n"
+        f"Reply *JOIN* to sign up! 😊"
     ),
     "hours": (
         f"*{GYM_NAME}* Operating Hours:\n\n"
-        f"📅 Monday - Friday: *{GYM_HOURS_WEEKDAY}*\n"
-        f"📅 Saturday - Sunday: *{GYM_HOURS_WEEKEND}*\n"
-        f"📅 Public Holidays: *8:00am - 6:00pm*\n\n"
+        f"📅 Monday - Sunday: *{GYM_HOURS}*\n"
+        f"📅 Public Holidays: *7:00am - 10:00pm*\n\n"
         f"See you at the gym! 💪"
     ),
     "join": (
         f"Welcome to *{GYM_NAME}*! 🎉\n\n"
         f"To join, visit us and bring your *IC (MyKad)*.\n\n"
-        f"*Membership Plans:*\n"
-        f"• Regular: *{GYM_PRICE_REGULAR}*\n"
-        f"• Student: *{GYM_PRICE_STUDENT}* (student card required)\n\n"
-        f"*Opening Hours:*\n"
-        f"Mon-Fri: {GYM_HOURS_WEEKDAY}\n"
-        f"Sat-Sun: {GYM_HOURS_WEEKEND}\n\n"
+        f"*Monthly Fee:* RM 60/month\n\n"
+        f"*Registration Fee (one-time):*\n"
+        f"• Regular: *{GYM_REG_FEE}*\n"
+        f"• Student: *{GYM_REG_FEE_STUDENT}* (student card required)\n\n"
+        f"*Hours:* Mon-Sun {GYM_HOURS}\n\n"
+        f"📍 {GYM_LOCATION}\n\n"
         f"Call us: *{GYM_PHONE}* 🏋️"
     ),
     "renew": (
         f"Hi! Ready to renew your *{GYM_NAME}* membership? 💪\n\n"
-        f"*Renewal Prices:*\n"
-        f"• Regular: *{GYM_PRICE_REGULAR}*\n"
-        f"• Student: *{GYM_PRICE_STUDENT}*\n\n"
+        f"*Monthly Fee: RM 60/month*\n\n"
         f"─────────────────\n"
         f"💳 *Pay via Online Transfer:*\n"
         f"Bank: *{BANK_NAME}*\n"
@@ -86,9 +86,10 @@ REPLIES = {
         f"Or visit / call us: *{GYM_PHONE}* 🏋️"
     ),
     "location": (
-        f"📍 *{GYM_NAME}* — Seremban, Negeri Sembilan\n\n"
-        f"For exact directions, WhatsApp or call us:\n"
-        f"*{GYM_PHONE}* and we'll guide you here! 🏋️"
+        f"📍 *{GYM_NAME}*\n\n"
+        f"*{GYM_LOCATION}*\n\n"
+        f"Hours: Mon-Sun {GYM_HOURS}\n\n"
+        f"Need directions? Call/WhatsApp: *{GYM_PHONE}* 🏋️"
     ),
 }
 
