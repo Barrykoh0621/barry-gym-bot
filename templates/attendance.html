@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Attendance — {{ gym_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h4><i class="bi bi-calendar-check me-2" style="color:var(--accent)"></i>Attendance</h4>
+    <small class="text-muted">{{ records|length }} record{{ 's' if records|length != 1 }} for {{ filter_date }}</small>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Quick Check-in -->
+  <div class="col-12 col-md-6">
+    <div class="card">
+      <div class="card-header py-2 px-3">
+        <span style="font-weight:600; font-size:.9rem;">
+          <i class="bi bi-box-arrow-in-right me-1" style="color:#4ade80"></i> Quick Check-in
+        </span>
+      </div>
+      <div class="card-body p-3">
+        <form method="post" action="{{ url_for('web_checkin') }}">
+          <div class="d-flex gap-2">
+            <select name="member_id" class="form-select form-select-sm" required>
+              <option value="" disabled selected>Select member…</option>
+              {% for m in all_members %}
+                <option value="{{ m.id }}">{{ m.name }} ({{ m.phone }})</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-accent flex-shrink-0">
+              <i class="bi bi-box-arrow-in-right"></i> Check In
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Check-out -->
+  <div class="col-12 col-md-6">
+    <div class="card">
+      <div class="card-header py-2 px-3">
+        <span style="font-weight:600; font-size:.9rem;">
+          <i class="bi bi-box-arrow-right me-1" style="color:#f87171"></i> Quick Check-out
+        </span>
+      </div>
+      <div class="card-body p-3">
+        <form method="post" action="{{ url_for('web_checkout') }}">
+          <div class="d-flex gap-2">
+            <select name="member_id" class="form-select form-select-sm" required>
+              <option value="" disabled selected>Select member…</option>
+              {% for m in all_members %}
+                <option value="{{ m.id }}">{{ m.name }} ({{ m.phone }})</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-outline-danger flex-shrink-0">
+              <i class="bi bi-box-arrow-right"></i> Check Out
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Date filter -->
+<form method="get" class="mb-3">
+  <div class="input-group" style="max-width:280px;">
+    <span class="input-group-text" style="background:#13151f;border-color:#2d3148;">
+      <i class="bi bi-calendar3 text-muted"></i>
+    </span>
+    <input type="date" name="date" class="form-control" value="{{ filter_date }}" />
+    <button type="submit" class="btn btn-accent">Filter</button>
+  </div>
+</form>
+
+<!-- Records table -->
+<div class="card">
+  <div class="card-body p-0">
+    {% if records %}
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th class="ps-3">#</th>
+              <th>Member</th>
+              <th>Phone</th>
+              <th>Check-in</th>
+              <th>Check-out</th>
+              <th>Duration</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in records %}
+            {% set checkin_time  = r.check_in[11:16]  if r.check_in  else '—' %}
+            {% set checkout_time = r.check_out[11:16] if r.check_out else None %}
+            <tr>
+              <td class="ps-3 text-muted" style="font-size:.8rem;">{{ loop.index }}</td>
+              <td class="fw-semibold">
+                <i class="bi bi-person-circle me-1 text-muted"></i>{{ r.member_name }}
+              </td>
+              <td style="color:#6b7280; font-size:.85rem;">{{ r.member_phone }}</td>
+              <td>{{ checkin_time }}</td>
+              <td>
+                {% if checkout_time %}
+                  {{ checkout_time }}
+                {% else %}
+                  <span class="badge" style="background:#14532d;color:#4ade80;font-size:.7rem;">In gym</span>
+                {% endif %}
+              </td>
+              <td style="color:#94a3b8; font-size:.85rem;">
+                {% if r.check_in and r.check_out %}
+                  {% set mins = ((r.check_out | replace('T',' ') | truncate(19,false,'') ) | length) %}
+                  <span id="dur-{{ r.id }}"
+                        data-in="{{ r.check_in }}" data-out="{{ r.check_out }}">
+                    —
+                  </span>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge" style="background:#1e2d40;color:#60a5fa;font-size:.7rem;">
+                  {% if r.check_out and (r.check_out | length) > 5 %}
+                    Web / WhatsApp
+                  {% else %}
+                    Web / WhatsApp
+                  {% endif %}
+                  Auto
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+        No attendance records for {{ filter_date }}.
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  // Calculate duration for each row that has both check-in and check-out
+  document.querySelectorAll('[id^="dur-"]').forEach(el => {
+    const inT  = el.dataset.in;
+    const outT = el.dataset.out;
+    if (inT && outT) {
+      const ms   = new Date(outT.replace(' ','T')) - new Date(inT.replace(' ','T'));
+      const mins = Math.round(ms / 60000);
+      if (mins >= 60) {
+        el.textContent = `${Math.floor(mins/60)}h ${mins%60}m`;
+      } else {
+        el.textContent = `${mins}m`;
+      }
+    }
+  });
+</script>
+{% endblock %}

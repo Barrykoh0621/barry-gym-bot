@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — {{ gym_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h4><i class="bi bi-speedometer2 me-2" style="color:var(--accent)"></i>Dashboard</h4>
+    <small class="text-muted">{{ gym_name }} — Overview</small>
+  </div>
+  <small class="text-muted">
+    <i class="bi bi-calendar3 me-1"></i>
+    <span id="today-date"></span>
+  </small>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <div class="stat-value">{{ stats.total_members }}</div>
+          <div class="stat-label">Total Members</div>
+        </div>
+        <div class="stat-icon" style="background:#1e2e47"><i class="bi bi-people text-info"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <div class="stat-value" style="color:#4ade80">{{ stats.active_members }}</div>
+          <div class="stat-label">Active Members</div>
+        </div>
+        <div class="stat-icon" style="background:#14532d"><i class="bi bi-patch-check text-success"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <div class="stat-value" style="color:var(--accent)">{{ stats.today_checkins }}</div>
+          <div class="stat-label">Today's Check-ins</div>
+        </div>
+        <div class="stat-icon" style="background:#431407"><i class="bi bi-door-open" style="color:var(--accent)"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <div class="stat-value" style="color:#fbbf24">{{ stats.pending_payment }}</div>
+          <div class="stat-label">Pending Payments</div>
+        </div>
+        <div class="stat-icon" style="background:#78350f"><i class="bi bi-credit-card text-warning"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Today's check-ins -->
+  <div class="col-12 col-lg-7">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center py-2 px-3">
+        <span class="fw-600" style="font-weight:600; font-size:.9rem;">
+          <i class="bi bi-door-open me-1" style="color:var(--accent)"></i> Today's Check-ins
+        </span>
+        <a href="{{ url_for('attendance') }}" class="btn btn-sm btn-outline-secondary" style="font-size:.75rem;">
+          View all
+        </a>
+      </div>
+      <div class="card-body p-0">
+        {% if stats.recent_checkins %}
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th class="ps-3">Member</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in stats.recent_checkins %}
+              <tr>
+                <td class="ps-3">
+                  <i class="bi bi-person-circle me-1 text-muted"></i>{{ r.member_name }}
+                </td>
+                <td>{{ r.check_in[11:16] if r.check_in else '—' }}</td>
+                <td>
+                  {% if r.check_out %}
+                    {{ r.check_out[11:16] }}
+                  {% else %}
+                    <span class="badge" style="background:#14532d;color:#4ade80;font-size:.7rem;">In gym</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-door-open fs-2 d-block mb-2"></i>
+            No check-ins today yet.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Expiring soon -->
+  <div class="col-12 col-lg-5">
+    <div class="card">
+      <div class="card-header py-2 px-3">
+        <span class="fw-600" style="font-weight:600; font-size:.9rem;">
+          <i class="bi bi-exclamation-triangle me-1 text-warning"></i> Expiring This Week
+        </span>
+      </div>
+      <div class="card-body p-0">
+        {% if stats.expiring_soon %}
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th class="ps-3">Member</th>
+                <th>Expires</th>
+                <th>Payment</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in stats.expiring_soon %}
+              <tr>
+                <td class="ps-3">
+                  <a href="{{ url_for('member_edit', member_id=m.id) }}" class="text-decoration-none text-light">
+                    {{ m.name }}
+                  </a>
+                </td>
+                <td style="font-size:.8rem;">{{ m.expiry_date }}</td>
+                <td>
+                  <span class="badge badge-{{ m.payment_status }}" style="font-size:.7rem;">
+                    {{ m.payment_status.title() }}
+                  </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-check-circle fs-2 d-block mb-2 text-success"></i>
+            No memberships expiring this week.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-MY', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+</script>
+{% endblock %}

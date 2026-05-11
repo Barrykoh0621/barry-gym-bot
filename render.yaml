@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: barry-gym-whatsapp-bot
+    name: barry-gym-bot
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python auto_reply_cloud.py
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --preload
     envVars:
       - key: ULTRAMSG_INSTANCE
         value: instance169328
@@ -29,3 +29,7 @@ services:
         value: Barry Gym
       - key: QR_CODE_IMAGE_URL
         value: ""
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DB_PATH
+        value: /var/data/gym.db
