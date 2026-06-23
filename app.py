@@ -1,13 +1,15 @@
 """
 Barry's Gym - Record Management App
-Web dashboard + WhatsApp bot (UltraMsg)
+Web dashboard + WhatsApp bot (UltraMsg) + 24/7 auto-reminder scheduler
 """
 
 import os
-import json
+import atexit
 import requests
 from datetime import datetime, date
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
 import gym_db
 
 gym_db.init_db()
@@ -31,7 +33,11 @@ BANK_ACCOUNT       = os.environ.get("BANK_ACCOUNT", "6474752824")
 BANK_HOLDER        = os.environ.get("BANK_HOLDER", "Barry Gym")
 QR_CODE_IMAGE_URL  = os.environ.get("QR_CODE_IMAGE_URL", "")
 
+AMOUNT_MAP = {"regular": 100.0, "student": 60.0}
+
+
 # ── WhatsApp helpers ──────────────────────────────────────────
+
 def send_whatsapp(phone, message):
     url     = f"{ULTRAMSG_API_URL}/messages/chat"
     payload = {"token": ULTRAMSG_TOKEN, "to": phone, "body": message, "priority": 1}
@@ -54,6 +60,88 @@ def send_whatsapp_image(phone, image_url, caption=""):
         return 0
 
 
+# ── Scheduler: 24/7 Auto-Reminders ───────────────────────────
+
+def _build_reminder_msg(member, days_left):
+    name   = member["name"]
+    expiry = member["expiry_date"]
+    amount = "RM 60" if member["membership_type"] == "student" else "RM 100"
+    if days_left == 7:
+        return (
+            f"Hi *{name}*! 👋\n\n"
+            f"Friendly reminder: your *{GYM_NAME}* membership expires in *7 days* on {expiry}.\n\n"
+            f"Renew now for {amount}/month and keep your streak going! 💪\n\n"
+            f"💳 Reply *PAYMENT* for bank details.\n"
+            f"📞 Contact: *{GYM_PHONE}*"
+        )
+    elif days_left == 3:
+        return (
+            f"⚠️ *Urgent, {name}!*\n\n"
+            f"Your *{GYM_NAME}* membership expires in *3 days* on {expiry}.\n\n"
+            f"Renew now for {amount}/month — don't lose your access!\n\n"
+            f"💳 Reply *PAYMENT* for bank details.\n"
+            f"📞 Contact: *{GYM_PHONE}*"
+        )
+    else:
+        return (
+            f"🚨 *Last Chance, {name}!*\n\n"
+            f"Your *{GYM_NAME}* membership *expires TODAY* ({expiry}).\n\n"
+            f"Reply *PAYMENT* right now to renew for {amount}/month and keep training! 💪\n\n"
+            f"📞 Contact: *{GYM_PHONE}*"
+        )
+
+
+def _build_overdue_msg(member):
+    name   = member["name"]
+    expiry = member["expiry_date"]
+    amount = "RM 60" if member["membership_type"] == "student" else "RM 100"
+    today  = date.today()
+    days   = (today - date.fromisoformat(expiry)).days
+    return (
+        f"Hi *{name}* 🏋️\n\n"
+        f"Your *{GYM_NAME}* membership expired *{days} days ago* on {expiry}.\n\n"
+        f"We miss you! Renew for {amount}/month to get back in the gym.\n\n"
+        f"💳 Reply *PAYMENT* for bank details.\n"
+        f"📞 Contact: *{GYM_PHONE}*\n\n"
+        f"Come back stronger! 💪"
+    )
+
+
+def _run_daily_jobs():
+    """Runs at 9:00 AM MYT daily — the core revenue engine."""
+    print(f"[Scheduler] Daily jobs started at {datetime.now()}")
+
+    # 1. Auto-mark overdue members
+    count = gym_db.auto_mark_overdue()
+    print(f"[Scheduler] Marked {count} members as overdue")
+
+    # 2. Send expiry reminders (7 days, 3 days, today)
+    sent = 0
+    for days_left in (7, 3, 0):
+        for m in gym_db.get_members_expiring_in_days(days_left):
+            send_whatsapp(m["phone"], _build_reminder_msg(m, days_left))
+            sent += 1
+
+    # 3. Chase overdue members (every 3 days after expiry)
+    for m in gym_db.get_members_overdue_for_chasing():
+        send_whatsapp(m["phone"], _build_overdue_msg(m))
+        sent += 1
+
+    print(f"[Scheduler] Sent {sent} WhatsApp reminders")
+
+
+# Start scheduler — safe with gunicorn --workers 1 --preload
+_scheduler = BackgroundScheduler()
+_scheduler.add_job(
+    _run_daily_jobs,
+    trigger=CronTrigger(hour=9, minute=0, timezone="Asia/Kuala_Lumpur")
+)
+_scheduler.start()
+atexit.register(lambda: _scheduler.running and _scheduler.shutdown(wait=False))
+
+
+# ── WhatsApp keyword bot ──────────────────────────────────────
+
 GREETINGS = {
     "hi", "hello", "hey", "helo", "hai", "haii", "ello", "yo",
     "assalamualaikum", "slm", "hi there", "good morning", "good afternoon",
@@ -71,6 +159,7 @@ KEYWORDS = {
     "tamat": "status", "tarikh": "status",
     "checkin": "checkin", "check in": "checkin", "masuk": "checkin",
     "checkout": "checkout", "check out": "checkout", "keluar": "checkout",
+    "renew": "payment", "renewal": "payment", "perpanjang": "payment",
 }
 
 MENU = (
@@ -89,7 +178,7 @@ MEMBERSHIP_REPLY = (
     f"🏋️ *{GYM_NAME} — Membership Plans*\n\n"
     f"💰 Regular Member: *{GYM_PRICE_REGULAR}*\n"
     f"🎓 Student Member: *{GYM_PRICE_STUDENT}*\n\n"
-    f"✅ Includes full gym access\n"
+    f"✅ Full gym access\n"
     f"✅ All equipment & facilities\n\n"
     f"To register, please provide:\n"
     f"1️⃣ Full name\n"
@@ -128,18 +217,18 @@ def handle_status(phone):
             f"To register, reply *MEMBERSHIP* for our plans.\n"
             f"📞 Contact: *{GYM_PHONE}*"
         )
-    today = date.today().isoformat()
+    today   = date.today().isoformat()
     expired = member["expiry_date"] < today
-    status_icon = "✅" if not expired else "❌"
-    status_text = "Active" if not expired else "Expired"
-    pay_icon = "✅" if member["payment_status"] == "paid" else "⚠️"
+    s_icon  = "✅" if not expired else "❌"
+    s_text  = "Active" if not expired else "Expired"
+    p_icon  = "✅" if member["payment_status"] == "paid" else "⚠️"
     return (
         f"📋 *Membership Status*\n\n"
         f"👤 Name: *{member['name']}*\n"
         f"🏷️ Plan: *{member['membership_type'].title()}*\n"
-        f"{status_icon} Status: *{status_text}*\n"
+        f"{s_icon} Status: *{s_text}*\n"
         f"📅 Expiry: *{member['expiry_date']}*\n"
-        f"{pay_icon} Payment: *{member['payment_status'].title()}*\n\n"
+        f"{p_icon} Payment: *{member['payment_status'].title()}*\n\n"
         f"📞 Enquiries: *{GYM_PHONE}*"
     )
 
@@ -156,12 +245,12 @@ def handle_checkin(phone):
     if member["expiry_date"] < today:
         return (
             f"⚠️ Hi *{member['name']}*, your membership has *expired*.\n"
-            f"Expiry date: {member['expiry_date']}\n\n"
+            f"Expiry: {member['expiry_date']}\n\n"
             f"Please renew to continue using the gym.\n"
             f"Reply *PAYMENT* for payment details.\n"
             f"📞 Contact: *{GYM_PHONE}*"
         )
-    ok = gym_db.checkin(member["id"])
+    ok  = gym_db.checkin(member["id"])
     now = datetime.now().strftime("%I:%M %p")
     if ok:
         return (
@@ -183,7 +272,7 @@ def handle_checkout(phone):
             f"❌ You are *not registered* as a member.\n"
             f"📞 Contact: *{GYM_PHONE}*"
         )
-    ok = gym_db.checkout(member["id"])
+    ok  = gym_db.checkout(member["id"])
     now = datetime.now().strftime("%I:%M %p")
     if ok:
         return (
@@ -220,7 +309,6 @@ def webhook():
             return "OK", 200
 
         print(f"[{datetime.now().strftime('%H:%M:%S')}] MSG from {from_num}: {body_txt}")
-
         text_lower = body_txt.strip().lower()
 
         if text_lower in GREETINGS:
@@ -265,8 +353,8 @@ def dashboard():
 @app.route("/members")
 def members():
     search = request.args.get("q", "").strip()
-    rows = gym_db.get_all_members(search or None)
-    today = date.today().isoformat()
+    rows   = gym_db.get_all_members(search or None)
+    today  = date.today().isoformat()
     return render_template("members.html", members=rows, search=search,
                            today=today, gym_name=GYM_NAME)
 
@@ -285,8 +373,8 @@ def member_new():
             flash("Please fill in all required fields.", "danger")
             return redirect(url_for("member_new"))
         try:
-            gym_db.add_member(name, phone, membership_type, start_date, expiry_date,
-                              payment_status, notes)
+            gym_db.add_member(name, phone, membership_type, start_date,
+                              expiry_date, payment_status, notes)
             flash(f"Member '{name}' added successfully.", "success")
             return redirect(url_for("members"))
         except Exception as e:
@@ -330,10 +418,28 @@ def member_delete(member_id):
     return redirect(url_for("members"))
 
 
+@app.route("/members/<int:member_id>/pay", methods=["POST"])
+def member_pay(member_id):
+    member = gym_db.get_member(member_id)
+    if not member:
+        flash("Member not found.", "danger")
+        return redirect(url_for("revenue"))
+    amount         = AMOUNT_MAP.get(member["membership_type"], 100.0)
+    today          = date.today().isoformat()
+    month_paid_for = date.today().strftime("%Y-%m")
+    notes          = request.form.get("notes", "").strip()
+    gym_db.add_payment(member_id, amount, today, month_paid_for, notes)
+    flash(f"Payment of RM{int(amount)} recorded for {member['name']}. ✅", "success")
+    next_url = request.form.get("next") or url_for("revenue")
+    return redirect(next_url)
+
+
+# ── Attendance ────────────────────────────────────────────────
+
 @app.route("/attendance")
 def attendance():
     filter_date = request.args.get("date", date.today().isoformat())
-    rows = gym_db.get_attendance(filter_date=filter_date)
+    rows        = gym_db.get_attendance(filter_date=filter_date)
     all_members = gym_db.get_all_members()
     return render_template("attendance.html", records=rows, filter_date=filter_date,
                            all_members=all_members, gym_name=GYM_NAME)
@@ -357,11 +463,11 @@ def web_checkin():
 
 @app.route("/attendance/checkout", methods=["POST"])
 def web_checkout():
-    attendance_member_id = request.form.get("member_id")
-    if attendance_member_id:
-        member = gym_db.get_member(int(attendance_member_id))
+    member_id = request.form.get("member_id")
+    if member_id:
+        member = gym_db.get_member(int(member_id))
         if member:
-            ok = gym_db.checkout(int(attendance_member_id))
+            ok = gym_db.checkout(int(member_id))
             if ok:
                 flash(f"🚪 {member['name']} checked out.", "success")
             else:
@@ -371,15 +477,35 @@ def web_checkout():
     return redirect(url_for("attendance"))
 
 
+# ── Revenue dashboard ─────────────────────────────────────────
+
+@app.route("/revenue")
+def revenue():
+    stats = gym_db.get_revenue_stats()
+    return render_template("revenue.html", stats=stats, gym_name=GYM_NAME,
+                           this_month=date.today().strftime("%B %Y"),
+                           today_iso=date.today().isoformat())
+
+
+@app.route("/scheduler/run-now", methods=["POST"])
+def scheduler_run_now():
+    _run_daily_jobs()
+    flash("Daily reminder jobs executed. WhatsApp messages sent to qualifying members. ✅", "success")
+    return redirect(url_for("revenue"))
+
+
 # ── Health check ──────────────────────────────────────────────
 
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok", "gym": GYM_NAME})
+    return jsonify({
+        "status": "ok",
+        "gym": GYM_NAME,
+        "scheduler": _scheduler.running,
+    })
 
 
 if __name__ == "__main__":
-    gym_db.init_db()
     port = int(os.environ.get("PORT", 5000))
     print(f"{'='*50}")
     print(f"{GYM_NAME} - Record App")

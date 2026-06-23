@@ -344,6 +344,12 @@
           <i class="bi bi-calendar-check"></i> Attendance
         </a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'revenue' %}active{% endif %}"
+           href="{{ url_for('revenue') }}">
+          <i class="bi bi-graph-up-arrow"></i> Revenue
+        </a>
+      </li>
     </ul>
 
     <hr class="gold-divider mx-3 my-2" />

@@ -33,3 +33,5 @@ services:
         generateValue: true
       - key: DB_PATH
         value: /var/data/gym.db
+      - key: TZ
+        value: Asia/Kuala_Lumpur

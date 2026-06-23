@@ -4,13 +4,13 @@ Barry's Gym - Database module (SQLite)
 
 import sqlite3
 import os
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 DB_PATH = os.environ.get("DB_PATH", "gym.db")
 
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -36,6 +36,18 @@ def init_db():
             member_id INTEGER NOT NULL,
             check_in TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             check_out TIMESTAMP,
+            FOREIGN KEY (member_id) REFERENCES members(id)
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS payments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            member_id INTEGER NOT NULL,
+            amount REAL NOT NULL,
+            payment_date DATE NOT NULL,
+            month_paid_for TEXT NOT NULL,
+            notes TEXT,
+            recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (member_id) REFERENCES members(id)
         )
     """)
@@ -101,6 +113,7 @@ def update_member(member_id, name, phone, membership_type, start_date, expiry_da
 
 def delete_member(member_id):
     conn = get_db()
+    conn.execute("DELETE FROM payments WHERE member_id = ?", (member_id,))
     conn.execute("DELETE FROM attendance WHERE member_id = ?", (member_id,))
     conn.execute("DELETE FROM members WHERE id = ?", (member_id,))
     conn.commit()
@@ -110,7 +123,6 @@ def delete_member(member_id):
 # ── Attendance ────────────────────────────────────────────────
 
 def checkin(member_id):
-    """Record check-in. Returns True if successful, False if already checked in."""
     conn = get_db()
     today = date.today().isoformat()
     existing = conn.execute(
@@ -131,7 +143,6 @@ def checkin(member_id):
 
 
 def checkout(member_id):
-    """Record check-out. Returns True if successful, False if not checked in."""
     conn = get_db()
     today = date.today().isoformat()
     row = conn.execute(
@@ -217,3 +228,133 @@ def get_dashboard_stats():
         "expiring_soon": list(expiring_soon),
         "recent_checkins": list(recent_checkins),
     }
+
+
+# ── Payments ──────────────────────────────────────────────────
+
+def add_payment(member_id, amount, payment_date, month_paid_for, notes=""):
+    conn = get_db()
+    conn.execute(
+        """INSERT INTO payments (member_id, amount, payment_date, month_paid_for, notes)
+           VALUES (?, ?, ?, ?, ?)""",
+        (member_id, amount, payment_date, month_paid_for, notes)
+    )
+    conn.execute(
+        "UPDATE members SET payment_status = 'paid' WHERE id = ?",
+        (member_id,)
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_payments(member_id=None, limit=50):
+    conn = get_db()
+    if member_id:
+        rows = conn.execute(
+            """SELECT p.*, m.name as member_name, m.membership_type
+               FROM payments p JOIN members m ON p.member_id = m.id
+               WHERE p.member_id = ?
+               ORDER BY p.payment_date DESC LIMIT ?""",
+            (member_id, limit)
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            """SELECT p.*, m.name as member_name, m.membership_type
+               FROM payments p JOIN members m ON p.member_id = m.id
+               ORDER BY p.payment_date DESC LIMIT ?""",
+            (limit,)
+        ).fetchall()
+    conn.close()
+    return rows
+
+
+def get_revenue_stats():
+    conn = get_db()
+    today = date.today().isoformat()
+    this_month = date.today().strftime("%Y-%m")
+
+    mrr_row = conn.execute(
+        """SELECT COALESCE(SUM(CASE WHEN membership_type='regular' THEN 100 ELSE 60 END), 0) as mrr
+           FROM members WHERE expiry_date >= ?""",
+        (today,)
+    ).fetchone()
+    mrr_potential = mrr_row["mrr"] if mrr_row else 0
+
+    collected_row = conn.execute(
+        """SELECT COALESCE(SUM(amount), 0) as total
+           FROM payments WHERE strftime('%Y-%m', payment_date) = ?""",
+        (this_month,)
+    ).fetchone()
+    collected_this_month = collected_row["total"] if collected_row else 0
+
+    outstanding_row = conn.execute(
+        """SELECT COALESCE(SUM(CASE WHEN membership_type='regular' THEN 100 ELSE 60 END), 0) as total
+           FROM members WHERE payment_status != 'paid'"""
+    ).fetchone()
+    outstanding = outstanding_row["total"] if outstanding_row else 0
+
+    outstanding_members = conn.execute(
+        """SELECT id, name, phone, membership_type, expiry_date, payment_status
+           FROM members WHERE payment_status != 'paid'
+           ORDER BY expiry_date ASC"""
+    ).fetchall()
+
+    recent_payments = conn.execute(
+        """SELECT p.*, m.name as member_name, m.membership_type
+           FROM payments p JOIN members m ON p.member_id = m.id
+           ORDER BY p.payment_date DESC LIMIT 20"""
+    ).fetchall()
+
+    conn.close()
+    return {
+        "mrr_potential": int(mrr_potential),
+        "collected_this_month": int(collected_this_month),
+        "outstanding": int(outstanding),
+        "outstanding_members": list(outstanding_members),
+        "recent_payments": list(recent_payments),
+    }
+
+
+# ── Scheduler helpers ─────────────────────────────────────────
+
+def get_members_expiring_in_days(days):
+    target = (date.today() + timedelta(days=days)).isoformat()
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM members WHERE expiry_date = ?", (target,)
+    ).fetchall()
+    conn.close()
+    return rows
+
+
+def get_members_overdue_for_chasing():
+    """Returns overdue members where days-since-expiry is a multiple of 3."""
+    today = date.today()
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT * FROM members
+           WHERE expiry_date < ? AND payment_status != 'paid'""",
+        (today.isoformat(),)
+    ).fetchall()
+    conn.close()
+    result = []
+    for m in rows:
+        days_overdue = (today - date.fromisoformat(m["expiry_date"])).days
+        if days_overdue > 0 and days_overdue % 3 == 0:
+            result.append(m)
+    return result
+
+
+def auto_mark_overdue():
+    """Marks as 'overdue' members unpaid and expired > 7 days ago."""
+    cutoff = (date.today() - timedelta(days=7)).isoformat()
+    conn = get_db()
+    cur = conn.execute(
+        """UPDATE members SET payment_status = 'overdue'
+           WHERE payment_status != 'paid' AND expiry_date < ?""",
+        (cutoff,)
+    )
+    count = cur.rowcount
+    conn.commit()
+    conn.close()
+    return count
