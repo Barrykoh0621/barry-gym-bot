@@ -2,35 +2,30 @@
 {% block title %}Members — {{ gym_name }}{% endblock %}
 
 {% block content %}
-<!-- ── Hero Banner ──────────────────────────────── -->
 <div class="page-hero">
-  <img src="https://images.unsplash.com/photo-1581009137042-c552e485697a?auto=format&fit=crop&w=1400&q=70"
-       alt="Gym" />
+  <img class="page-hero-img"
+       src="https://images.unsplash.com/photo-1581009137042-c552e485697a?auto=format&fit=crop&w=1400&q=70"
+       alt="" />
   <div class="page-hero-overlay">
     <div>
-      <div style="color:var(--gold);font-size:.68rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:.3rem;">
-        Member Management
-      </div>
-      <h2>Members <span>Directory</span></h2>
-      <p>{{ members|length }} registered member{{ 's' if members|length != 1 }}</p>
+      <div class="hero-eyebrow">Manage</div>
+      <h1 class="hero-title">Members <span>Directory</span></h1>
+      <div class="hero-sub">{{ members|length }} registered member{{ 's' if members|length != 1 }}</div>
     </div>
   </div>
 </div>
 
-<!-- ── Content ───────────────────────────────────── -->
 <div class="content-wrap">
   <!-- Toolbar -->
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 animate-up">
     <form method="get" class="d-flex gap-2">
       <div class="input-group" style="width:280px;">
         <span class="input-group-text"><i class="bi bi-search"></i></span>
         <input type="text" name="q" value="{{ search }}" placeholder="Search name or phone…" class="form-control" />
       </div>
-      <button type="submit" class="btn btn-gold-outline btn-sm">Search</button>
+      <button type="submit" class="btn btn-outline-gold btn-sm">Go</button>
       {% if search %}
-        <a href="{{ url_for('members') }}" class="btn btn-sm" style="background:var(--bg-card2);color:var(--text-muted);border:1px solid var(--border);">
-          <i class="bi bi-x"></i>
-        </a>
+        <a href="{{ url_for('members') }}" class="btn btn-ghost btn-sm"><i class="bi bi-x"></i></a>
       {% endif %}
     </form>
     <a href="{{ url_for('member_new') }}" class="btn btn-gold btn-sm">
@@ -38,74 +33,81 @@
     </a>
   </div>
 
-  <div class="card">
-    <div class="card-body p-0">
-      {% if members %}
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th style="width:40px;">&nbsp;</th>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Plan</th>
-                <th>Start</th>
-                <th>Expiry</th>
-                <th>Status</th>
-                <th>Payment</th>
-                <th class="text-end pe-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for m in members %}
-              {% set expired = m.expiry_date < today %}
-              <tr>
-                <td class="ps-3">
-                  <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dark),var(--gold));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;color:#0a0b10;">
-                    {{ m.name[0].upper() }}
-                  </div>
-                </td>
-                <td style="font-weight:600;">{{ m.name }}</td>
-                <td style="color:var(--text-muted);font-size:.82rem;">{{ m.phone }}</td>
-                <td><span class="badge badge-{{ m.membership_type }}">{{ m.membership_type.title() }}</span></td>
-                <td style="color:var(--text-muted);font-size:.8rem;">{{ m.start_date }}</td>
-                <td style="font-size:.8rem;{% if expired %}color:#f87171;{% else %}color:var(--text-muted);{% endif %}">
-                  {{ m.expiry_date }}
-                </td>
-                <td><span class="badge badge-{{ 'expired' if expired else 'active' }}">{{ 'Expired' if expired else 'Active' }}</span></td>
-                <td><span class="badge badge-{{ m.payment_status }}">{{ m.payment_status.title() }}</span></td>
-                <td class="text-end pe-3">
-                  <a href="{{ url_for('member_edit', member_id=m.id) }}"
-                     class="btn btn-sm btn-gold-outline me-1" style="padding:.25rem .6rem;">
-                    <i class="bi bi-pencil"></i>
-                  </a>
-                  <form method="post" action="{{ url_for('member_delete', member_id=m.id) }}"
-                        class="d-inline"
-                        onsubmit="return confirm('Delete {{ m.name }}? This cannot be undone.')">
-                    <button type="submit" class="btn btn-sm"
-                            style="background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);padding:.25rem .6rem;">
-                      <i class="bi bi-trash"></i>
+  <div class="card animate-up-2">
+    {% if members %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:44px;"></th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Plan</th>
+              <th>Start</th>
+              <th>Expiry</th>
+              <th>Status</th>
+              <th>Payment</th>
+              <th class="text-end pe-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in members %}
+            {% set expired = m.expiry_date < today %}
+            <tr>
+              <td class="ps-3">
+                <div class="member-avatar">{{ m.name[0].upper() }}</div>
+              </td>
+              <td style="font-weight:700;">{{ m.name }}</td>
+              <td style="color:var(--text-muted);font-size:.8rem;font-family:monospace;">{{ m.phone }}</td>
+              <td><span class="badge badge-{{ m.membership_type }}">{{ m.membership_type.title() }}</span></td>
+              <td style="color:var(--text-muted);font-size:.78rem;">{{ m.start_date }}</td>
+              <td style="font-size:.78rem;{% if expired %}color:#f87171;{% else %}color:var(--text-muted);{% endif %}">
+                {{ m.expiry_date }}
+                {% if expired %}<div style="font-size:.62rem;color:#f87171;margin-top:1px;">Expired</div>{% endif %}
+              </td>
+              <td><span class="badge badge-{{ 'expired' if expired else 'active' }}">{{ 'Expired' if expired else 'Active' }}</span></td>
+              <td><span class="badge badge-{{ m.payment_status }}">{{ m.payment_status.title() }}</span></td>
+              <td class="text-end pe-3">
+                <div class="d-flex justify-content-end gap-1">
+                  <!-- Mark paid quick action -->
+                  {% if m.payment_status != 'paid' %}
+                  <form method="post" action="{{ url_for('member_pay', member_id=m.id) }}" class="d-inline">
+                    <input type="hidden" name="next" value="{{ url_for('members') }}" />
+                    <button type="submit" class="btn btn-success-ghost btn-sm" title="Mark Paid"
+                            style="padding:.25rem .55rem;">
+                      <i class="bi bi-check-lg"></i>
                     </button>
                   </form>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <div class="text-center py-5" style="color:var(--text-muted);">
-          <i class="bi bi-people" style="font-size:3rem;display:block;margin-bottom:1rem;color:var(--border);"></i>
-          {% if search %}
-            No members match <strong style="color:var(--text);">{{ search }}</strong>.
-            <a href="{{ url_for('members') }}" class="d-block mt-2" style="color:var(--gold);">Clear search</a>
-          {% else %}
-            No members yet.
-            <a href="{{ url_for('member_new') }}" class="d-block mt-2" style="color:var(--gold);">Add your first member →</a>
-          {% endif %}
-        </div>
-      {% endif %}
-    </div>
+                  {% endif %}
+                  <a href="{{ url_for('member_edit', member_id=m.id) }}"
+                     class="btn btn-outline-gold btn-sm" style="padding:.25rem .55rem;" title="Edit">
+                    <i class="bi bi-pencil-fill"></i>
+                  </a>
+                  <form method="post" action="{{ url_for('member_delete', member_id=m.id) }}" class="d-inline"
+                        onsubmit="return confirm('Delete {{ m.name }}? This cannot be undone.')">
+                    <button type="submit" class="btn btn-danger-ghost btn-sm" style="padding:.25rem .55rem;" title="Delete">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5" style="color:var(--text-dim);">
+        <i class="bi bi-people" style="font-size:3rem;display:block;margin-bottom:1rem;"></i>
+        {% if search %}
+          No members match <strong style="color:var(--text);">{{ search }}</strong>.
+          <a href="{{ url_for('members') }}" class="d-block mt-2" style="color:var(--gold);">Clear search</a>
+        {% else %}
+          No members yet.
+          <a href="{{ url_for('member_new') }}" class="d-block mt-2" style="color:var(--gold);">Add your first member →</a>
+        {% endif %}
+      </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

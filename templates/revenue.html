@@ -2,245 +2,323 @@
 {% block title %}Revenue — {{ gym_name }}{% endblock %}
 
 {% block content %}
-<!-- ── Hero Banner ──────────────────────────────── -->
-<div class="page-hero" style="height:180px;">
-  <img src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=1400&q=70"
-       alt="Revenue" />
-  <div class="page-hero-overlay" style="background:linear-gradient(to right,rgba(8,10,16,.96) 0%,rgba(8,10,16,.65) 55%,rgba(8,10,16,.1) 100%);">
+<div class="page-hero" style="height:210px;">
+  <img class="page-hero-img"
+       src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=1400&q=70"
+       alt="" />
+  <div class="page-hero-overlay" style="background:linear-gradient(108deg,rgba(7,8,13,.98) 0%,rgba(7,8,13,.72) 52%,rgba(7,8,13,.12) 100%);">
     <div>
-      <div style="color:var(--gold);font-size:.68rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:.3rem;">
-        💰 Money Dashboard
-      </div>
-      <h2>Revenue <span>Overview</span></h2>
-      <p>{{ this_month }} — your gym's earnings at a glance</p>
+      <div class="hero-eyebrow">Finance</div>
+      <h1 class="hero-title">Revenue <span>Dashboard</span></h1>
+      <div class="hero-sub">{{ this_month }} — your gym's earnings at a glance</div>
     </div>
   </div>
 </div>
 
 <div class="content-wrap">
 
-  <!-- ── KPI Cards ──────────────────────────────── -->
+  <!-- KPI Cards -->
+  {% set rate = ((stats.collected_this_month / stats.mrr_potential * 100)|round(1)) if stats.mrr_potential > 0 else 0 %}
   <div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
+    <div class="col-6 col-lg-3 animate-up">
       <div class="stat-card">
-        <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
-        <div class="stat-value">RM {{ stats.mrr_potential }}</div>
-        <div class="stat-label">MRR Potential</div>
-        <div style="color:var(--text-muted);font-size:.68rem;margin-top:.4rem;">If all members pay</div>
+        <div class="stat-card-icon"><i class="bi bi-graph-up-arrow" style="color:var(--gold);"></i></div>
+        <div class="stat-card-value" data-prefix="RM " data-count="{{ stats.mrr_potential }}">RM {{ stats.mrr_potential }}</div>
+        <div class="stat-card-label">MRR Potential</div>
       </div>
     </div>
-    <div class="col-6 col-lg-3">
-      <div class="stat-card" style="border-top-color:#22c55e;">
-        <div class="stat-icon" style="background:rgba(34,197,94,.12);color:#4ade80;">
-          <i class="bi bi-check-circle-fill"></i>
+    <div class="col-6 col-lg-3 animate-up-2">
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.18);">
+          <i class="bi bi-check-circle-fill" style="color:#10b981;"></i>
         </div>
-        <div class="stat-value" style="color:#4ade80;">RM {{ stats.collected_this_month }}</div>
-        <div class="stat-label">Collected This Month</div>
-        <div style="color:var(--text-muted);font-size:.68rem;margin-top:.4rem;">Payments recorded</div>
+        <div class="stat-card-value green" data-prefix="RM " data-count="{{ stats.collected_this_month }}">RM {{ stats.collected_this_month }}</div>
+        <div class="stat-card-label">Collected This Month</div>
       </div>
     </div>
-    <div class="col-6 col-lg-3">
-      <div class="stat-card" style="border-top-color:#ef4444;">
-        <div class="stat-icon" style="background:rgba(239,68,68,.12);color:#f87171;">
-          <i class="bi bi-exclamation-circle-fill"></i>
+    <div class="col-6 col-lg-3 animate-up-3">
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.18);">
+          <i class="bi bi-exclamation-circle-fill" style="color:#ef4444;"></i>
         </div>
-        <div class="stat-value" style="color:#f87171;">RM {{ stats.outstanding }}</div>
-        <div class="stat-label">Outstanding</div>
-        <div style="color:var(--text-muted);font-size:.68rem;margin-top:.4rem;">Unpaid memberships</div>
+        <div class="stat-card-value red" data-prefix="RM " data-count="{{ stats.outstanding }}">RM {{ stats.outstanding }}</div>
+        <div class="stat-card-label">Outstanding</div>
       </div>
     </div>
-    <div class="col-6 col-lg-3">
-      {% set rate = ((stats.collected_this_month / stats.mrr_potential * 100)|round(1)) if stats.mrr_potential > 0 else 0 %}
-      <div class="stat-card" style="border-top-color:{% if rate >= 80 %}#22c55e{% elif rate >= 50 %}#eab308{% else %}#ef4444{% endif %};">
-        <div class="stat-icon" style="background:rgba(212,175,55,.12);color:var(--gold);">
-          <i class="bi bi-percent"></i>
-        </div>
-        <div class="stat-value" style="color:{% if rate >= 80 %}#4ade80{% elif rate >= 50 %}#fbbf24{% else %}#f87171{% endif %};">
-          {{ rate }}%
-        </div>
-        <div class="stat-label">Collection Rate</div>
-        <div style="color:var(--text-muted);font-size:.68rem;margin-top:.4rem;">This month</div>
+    <div class="col-6 col-lg-3 animate-up-4">
+      <div class="stat-card" style="border-color:{% if rate >= 80 %}rgba(16,185,129,.25){% elif rate >= 50 %}rgba(245,158,11,.25){% else %}rgba(239,68,68,.25){% endif %};">
+        <div class="stat-card-icon" style="background:rgba(212,175,55,.08);"><i class="bi bi-percent" style="color:var(--gold);"></i></div>
+        <div class="stat-card-value {% if rate >= 80 %}green{% elif rate >= 50 %}yellow{% else %}red{% endif %}"
+             data-count="{{ rate }}" data-suffix="%">{{ rate }}%</div>
+        <div class="stat-card-label">Collection Rate</div>
       </div>
     </div>
   </div>
 
-  <!-- ── Revenue progress bar ──────────────────── -->
-  {% if stats.mrr_potential > 0 %}
-  {% set pct = [((stats.collected_this_month / stats.mrr_potential * 100)|round(0)|int), 100]|min %}
-  <div class="card mb-4">
-    <div class="card-body p-3">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <span style="font-size:.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">
-          Monthly Collection Progress
-        </span>
-        <span style="font-size:.82rem;font-weight:700;color:var(--gold-light);">
-          RM {{ stats.collected_this_month }} / RM {{ stats.mrr_potential }}
-        </span>
+  <!-- Progress bar + Chart row -->
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-8 animate-up-2">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="card-title-text"><i class="bi bi-bar-chart-fill"></i> Monthly Progress</div>
+        </div>
+        <div style="padding:1.25rem 1.5rem;">
+          {% if stats.mrr_potential > 0 %}
+          {% set pct = [((stats.collected_this_month / stats.mrr_potential * 100)|round(0)|int), 100]|min %}
+          <div class="d-flex justify-content-between mb-2">
+            <span style="font-size:.75rem;color:var(--text-muted);font-weight:600;">{{ this_month }} Collection</span>
+            <span style="font-size:.75rem;font-weight:700;color:var(--gold-light);">RM {{ stats.collected_this_month }} / RM {{ stats.mrr_potential }}</span>
+          </div>
+          <div style="height:12px;background:var(--bg3);border-radius:12px;overflow:hidden;border:1px solid var(--border);">
+            <div id="progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-light));border-radius:12px;transition:width 1.2s cubic-bezier(.34,1.56,.64,1);"
+                 data-target="{{ pct }}"></div>
+          </div>
+          <div class="d-flex justify-content-between mt-2">
+            <span style="font-size:.68rem;color:var(--text-dim);">RM 0</span>
+            <span style="font-size:.68rem;color:{% if pct >= 80 %}#34d399{% elif pct >= 50 %}#fbbf24{% else %}#f87171{% endif %};font-weight:700;">{{ pct }}% collected</span>
+            <span style="font-size:.68rem;color:var(--text-dim);">RM {{ stats.mrr_potential }}</span>
+          </div>
+          {% else %}
+          <div style="color:var(--text-dim);font-size:.82rem;text-align:center;padding:1rem 0;">
+            Add members to see revenue tracking.
+          </div>
+          {% endif %}
+
+          <!-- Stats summary row -->
+          <div class="row g-2 mt-3">
+            <div class="col-4">
+              <div style="background:var(--bg3);border-radius:10px;border:1px solid var(--border);padding:.75rem;text-align:center;">
+                <div style="font-size:1.1rem;font-weight:900;color:#34d399;">{{ stats.outstanding_members|selectattr('payment_status','eq','paid')|list|length if false else (stats.mrr_potential - stats.outstanding) // 100 if stats.mrr_potential > 0 else 0 }}</div>
+                <div style="font-size:.62rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-top:.2rem;">Paid</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div style="background:var(--bg3);border-radius:10px;border:1px solid var(--border);padding:.75rem;text-align:center;">
+                <div style="font-size:1.1rem;font-weight:900;color:#fbbf24;">{{ stats.outstanding_members|length }}</div>
+                <div style="font-size:.62rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-top:.2rem;">Outstanding</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div style="background:var(--bg3);border-radius:10px;border:1px solid var(--border);padding:.75rem;text-align:center;">
+                <div style="font-size:1.1rem;font-weight:900;color:var(--gold-light);">{{ stats.recent_payments|length }}</div>
+                <div style="font-size:.62rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-top:.2rem;">Payments</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div style="height:10px;background:var(--bg-card2);border-radius:10px;overflow:hidden;">
-        <div style="height:100%;width:{{ pct }}%;background:linear-gradient(to right,var(--gold-dark),var(--gold-light));border-radius:10px;transition:width .5s;"></div>
+    </div>
+
+    <!-- Doughnut chart -->
+    <div class="col-12 col-lg-4 animate-up-3">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="card-title-text"><i class="bi bi-pie-chart-fill"></i> Breakdown</div>
+        </div>
+        <div style="padding:1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;">
+          {% if stats.mrr_potential > 0 %}
+            <canvas id="doughnut" style="max-width:160px;max-height:160px;"></canvas>
+            <div class="d-flex gap-3 mt-3">
+              <div style="font-size:.7rem;display:flex;align-items:center;gap:.35rem;">
+                <span style="width:10px;height:10px;border-radius:3px;background:#10b981;flex-shrink:0;"></span>
+                <span style="color:var(--text-muted);">Collected</span>
+              </div>
+              <div style="font-size:.7rem;display:flex;align-items:center;gap:.35rem;">
+                <span style="width:10px;height:10px;border-radius:3px;background:#ef4444;flex-shrink:0;"></span>
+                <span style="color:var(--text-muted);">Outstanding</span>
+              </div>
+            </div>
+          {% else %}
+            <div style="color:var(--text-dim);font-size:.8rem;text-align:center;">No data yet.</div>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
-  {% endif %}
 
-  <!-- ── Tables ──────────────────────────────────── -->
+  <!-- Outstanding + History -->
   <div class="row g-3">
-
-    <!-- Outstanding members -->
-    <div class="col-12 col-xl-5">
+    <!-- Outstanding -->
+    <div class="col-12 col-xl-5 animate-up-2">
       <div class="card h-100">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <div class="card-title">
-            <i class="bi bi-exclamation-triangle me-2" style="color:#f87171;"></i>
-            Outstanding Members
+          <div class="card-title-text">
+            <i class="bi bi-exclamation-triangle-fill" style="color:var(--danger);"></i>
+            Outstanding
             {% if stats.outstanding_members %}
-              <span class="badge ms-1" style="background:rgba(239,68,68,.2);color:#f87171;font-size:.65rem;">
+              <span style="background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:.15em .55em;font-size:.65rem;margin-left:.3rem;">
                 {{ stats.outstanding_members|length }}
               </span>
             {% endif %}
           </div>
-          <!-- Manual trigger -->
           <form method="post" action="{{ url_for('scheduler_run_now') }}"
                 onsubmit="return confirm('Send WhatsApp reminders to all qualifying members now?')">
-            <button type="submit" class="btn btn-sm btn-gold-outline" style="font-size:.68rem;padding:.22rem .6rem;">
+            <button type="submit" class="btn btn-outline-gold btn-sm" style="font-size:.68rem;padding:.22rem .6rem;">
               <i class="bi bi-send me-1"></i>Send Reminders
             </button>
           </form>
         </div>
-        <div class="card-body p-0">
-          {% if stats.outstanding_members %}
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Member</th>
-                  <th>Plan</th>
-                  <th>Expiry</th>
-                  <th class="text-end pe-3">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for m in stats.outstanding_members %}
-                {% set expired = m.expiry_date < today_iso %}
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">{{ m.name }}</div>
-                    <div style="color:var(--text-muted);font-size:.72rem;">{{ m.phone }}</div>
-                  </td>
-                  <td><span class="badge badge-{{ m.membership_type }}">{{ m.membership_type.title() }}</span></td>
-                  <td style="font-size:.8rem;color:{% if expired %}#f87171{% else %}#fbbf24{% endif %};">
-                    {{ m.expiry_date }}
+        {% if stats.outstanding_members %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Expiry</th>
+                <th>Status</th>
+                <th class="text-end pe-3">Pay</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in stats.outstanding_members %}
+              {% set exp = m.expiry_date < today_iso %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="member-avatar" style="width:28px;height:28px;font-size:.7rem;">{{ m.name[0].upper() }}</div>
                     <div>
-                      <span class="badge badge-{{ m.payment_status }}" style="font-size:.65rem;">
-                        {{ m.payment_status.title() }}
-                      </span>
+                      <div style="font-weight:600;font-size:.82rem;">{{ m.name }}</div>
+                      <div style="color:var(--text-muted);font-size:.68rem;font-family:monospace;">{{ m.phone }}</div>
                     </div>
-                  </td>
-                  <td class="text-end pe-3">
-                    <form method="post" action="{{ url_for('member_pay', member_id=m.id) }}" class="d-inline">
-                      <input type="hidden" name="next" value="{{ url_for('revenue') }}" />
-                      <button type="submit" class="btn btn-sm"
-                              style="background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.2);font-size:.72rem;padding:.22rem .6rem;font-weight:600;">
-                        <i class="bi bi-check-lg me-1"></i>Mark Paid
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          {% else %}
-            <div class="text-center py-4" style="color:var(--text-muted);">
-              <i class="bi bi-check-circle-fill" style="font-size:2rem;display:block;margin-bottom:.5rem;color:rgba(34,197,94,.3);"></i>
-              All members are up to date! 🎉
-            </div>
-          {% endif %}
-        </div>
+                  </div>
+                </td>
+                <td style="font-size:.77rem;{% if exp %}color:#f87171;{% else %}color:#fbbf24;{% endif %}">{{ m.expiry_date }}</td>
+                <td><span class="badge badge-{{ m.payment_status }}">{{ m.payment_status.title() }}</span></td>
+                <td class="text-end pe-3">
+                  <form method="post" action="{{ url_for('member_pay', member_id=m.id) }}" class="d-inline">
+                    <input type="hidden" name="next" value="{{ url_for('revenue') }}" />
+                    <button type="submit" class="btn btn-success-ghost btn-sm" style="padding:.2rem .55rem;">
+                      <i class="bi bi-check-lg me-1"></i>Paid
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="text-center py-4" style="color:var(--text-dim);">
+            <i class="bi bi-check-circle-fill" style="font-size:2rem;display:block;margin-bottom:.5rem;color:rgba(16,185,129,.3);"></i>
+            <div style="font-size:.82rem;">All members are up to date! 🎉</div>
+          </div>
+        {% endif %}
       </div>
     </div>
 
     <!-- Payment history -->
-    <div class="col-12 col-xl-7">
+    <div class="col-12 col-xl-7 animate-up-3">
       <div class="card h-100">
         <div class="card-header">
-          <div class="card-title">
-            <i class="bi bi-receipt me-2"></i>Payment History
+          <div class="card-title-text"><i class="bi bi-receipt"></i> Payment History</div>
+        </div>
+        {% if stats.recent_payments %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Member</th>
+                <th>Plan</th>
+                <th>Month</th>
+                <th class="text-end pe-3">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in stats.recent_payments %}
+              <tr>
+                <td style="color:var(--text-muted);font-size:.77rem;">{{ p.payment_date }}</td>
+                <td style="font-weight:600;">{{ p.member_name }}</td>
+                <td><span class="badge badge-{{ p.membership_type }}">{{ p.membership_type.title() }}</span></td>
+                <td style="color:var(--text-muted);font-size:.77rem;">{{ p.month_paid_for }}</td>
+                <td class="text-end pe-3">
+                  <span style="color:#34d399;font-weight:800;font-size:.9rem;">RM {{ p.amount|int }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="text-center py-5" style="color:var(--text-dim);">
+            <i class="bi bi-receipt" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+            <div style="font-size:.82rem;">No payments recorded yet.<br />Use "Mark Paid" to record member payments.</div>
           </div>
-        </div>
-        <div class="card-body p-0">
-          {% if stats.recent_payments %}
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Member</th>
-                  <th>Plan</th>
-                  <th>Month</th>
-                  <th class="text-end pe-3">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for p in stats.recent_payments %}
-                <tr>
-                  <td style="color:var(--text-muted);font-size:.8rem;">{{ p.payment_date }}</td>
-                  <td style="font-weight:600;">{{ p.member_name }}</td>
-                  <td><span class="badge badge-{{ p.membership_type }}">{{ p.membership_type.title() }}</span></td>
-                  <td style="color:var(--text-muted);font-size:.8rem;">{{ p.month_paid_for }}</td>
-                  <td class="text-end pe-3">
-                    <span style="color:#4ade80;font-weight:700;font-size:.9rem;">
-                      RM {{ p.amount|int }}
-                    </span>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          {% else %}
-            <div class="text-center py-5" style="color:var(--text-muted);">
-              <i class="bi bi-receipt" style="font-size:2.5rem;display:block;margin-bottom:.75rem;color:var(--border);"></i>
-              No payments recorded yet.<br />
-              <small>Use "Mark Paid" to record member payments.</small>
-            </div>
-          {% endif %}
-        </div>
+        {% endif %}
       </div>
     </div>
-
   </div>
 
-  <!-- ── How it works ────────────────────────────── -->
-  <div class="card mt-4" style="border-color:var(--border-gold);">
-    <div class="card-body p-3">
-      <div style="color:var(--gold);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;">
-        <i class="bi bi-robot me-1"></i> 24/7 Auto-Reminder Engine
+  <!-- Auto-reminder engine info -->
+  <div class="card mt-3 animate-up-4" style="border-color:rgba(212,175,55,.2);">
+    <div style="padding:1.25rem 1.5rem;">
+      <div style="color:var(--gold);font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;">
+        <i class="bi bi-robot"></i> 24/7 Auto-Reminder Engine — Active
       </div>
       <div class="row g-3">
-        <div class="col-6 col-md-3 text-center">
-          <div style="font-size:1.5rem;">⏰</div>
-          <div style="font-weight:700;font-size:.82rem;margin:.25rem 0;">7 Days Before</div>
-          <div style="color:var(--text-muted);font-size:.72rem;">Friendly renewal reminder sent via WhatsApp</div>
+        {% for icon, days, title, desc in [
+          ('⏰','7 Days Before','Renewal Reminder','Friendly renewal reminder via WhatsApp'),
+          ('⚠️','3 Days Before','Urgent Reminder','Urgent message with payment details'),
+          ('🚨','Expiry Day','Last Chance','Final message to renew today'),
+          ('🔄','Every 3 Days','Overdue Chase','Auto-chase until payment received')
+        ] %}
+        <div class="col-6 col-md-3">
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:.9rem;text-align:center;">
+            <div style="font-size:1.4rem;margin-bottom:.35rem;">{{ icon }}</div>
+            <div style="color:var(--gold);font-size:.65rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;">{{ days }}</div>
+            <div style="color:var(--text);font-weight:700;font-size:.78rem;margin:.2rem 0;">{{ title }}</div>
+            <div style="color:var(--text-muted);font-size:.68rem;">{{ desc }}</div>
+          </div>
         </div>
-        <div class="col-6 col-md-3 text-center">
-          <div style="font-size:1.5rem;">⚠️</div>
-          <div style="font-weight:700;font-size:.82rem;margin:.25rem 0;">3 Days Before</div>
-          <div style="color:var(--text-muted);font-size:.72rem;">Urgent reminder with payment details</div>
-        </div>
-        <div class="col-6 col-md-3 text-center">
-          <div style="font-size:1.5rem;">🚨</div>
-          <div style="font-weight:700;font-size:.82rem;margin:.25rem 0;">Expiry Day</div>
-          <div style="color:var(--text-muted);font-size:.72rem;">Last chance message to renew today</div>
-        </div>
-        <div class="col-6 col-md-3 text-center">
-          <div style="font-size:1.5rem;">🔄</div>
-          <div style="font-weight:700;font-size:.82rem;margin:.25rem 0;">Every 3 Days After</div>
-          <div style="color:var(--text-muted);font-size:.72rem;">Auto-chase overdue members until they pay</div>
-        </div>
+        {% endfor %}
       </div>
-      <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border);color:var(--text-muted);font-size:.72rem;">
-        🕘 All reminders fire automatically at <strong style="color:var(--gold);">9:00 AM Malaysia Time</strong> daily — no manual work needed.
+      <div style="margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--border);font-size:.7rem;color:var(--text-muted);display:flex;align-items:center;gap:.5rem;">
+        <span class="live-dot" style="background:var(--gold);"></span>
+        Fires automatically at <strong style="color:var(--gold);">9:00 AM Malaysia Time</strong> daily — zero manual work required.
       </div>
     </div>
   </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  // Progress bar animation
+  const bar = document.getElementById('progress-bar');
+  if (bar) {
+    setTimeout(() => bar.style.width = bar.dataset.target + '%', 200);
+  }
+
+  // Doughnut chart
+  const ctx = document.getElementById('doughnut');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Collected', 'Outstanding'],
+        datasets: [{
+          data: [{{ stats.collected_this_month }}, {{ stats.outstanding }}],
+          backgroundColor: ['rgba(16,185,129,.75)', 'rgba(239,68,68,.55)'],
+          borderColor: ['#10b981', '#ef4444'],
+          borderWidth: 1.5,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        cutout: '72%',
+        animation: { animateRotate: true, duration: 1000 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (c) => ` RM ${c.parsed.toLocaleString()}`
+            },
+            backgroundColor: 'rgba(10,12,20,.95)',
+            titleColor: '#e8e4d9',
+            bodyColor: '#9ca3af',
+            borderColor: 'rgba(212,175,55,.2)',
+            borderWidth: 1
+          }
+        }
+      }
+    });
+  }
+</script>
 {% endblock %}
