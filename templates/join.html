@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Join {{ gym_name }} — Register Online</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --gold:#D4AF37;--gold-light:#F0C848;--gold-dark:#9A7D20;
+      --bg:#07080d;--surface:rgba(14,16,26,.93);
+      --border:rgba(212,175,55,.13);--border2:rgba(255,255,255,.05);
+      --text:#eae6d9;--text-muted:#5c6275;--text-dim:#373b4d;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;font-size:14px;min-height:100vh;}
+    body::before{
+      content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+      background:
+        radial-gradient(ellipse 80% 60% at 5% 40%,rgba(212,175,55,.05) 0%,transparent 60%),
+        radial-gradient(ellipse 60% 50% at 95% 10%,rgba(212,175,55,.03) 0%,transparent 55%);
+    }
+    .top-nav{
+      position:fixed;top:0;left:0;right:0;z-index:999;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:.85rem 2rem;
+      background:rgba(7,8,13,.85);backdrop-filter:blur(14px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-logo{
+      font-size:.95rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;
+      background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      text-decoration:none;
+    }
+    .nav-back{
+      color:var(--text-muted);text-decoration:none;font-size:.82rem;font-weight:600;
+      display:flex;align-items:center;gap:.4rem;transition:color .15s;
+    }
+    .nav-back:hover{color:var(--gold-light);}
+    main{padding-top:80px;min-height:100vh;position:relative;z-index:1;}
+    .page-wrap{max-width:960px;margin:0 auto;padding:2.5rem 1.25rem 4rem;}
+    .eyebrow{
+      color:var(--gold);font-size:.62rem;font-weight:800;text-transform:uppercase;
+      letter-spacing:.16em;margin-bottom:.6rem;
+      display:flex;align-items:center;gap:.5rem;
+    }
+    .eyebrow::before{content:'';display:block;width:20px;height:2px;background:linear-gradient(to right,var(--gold-dark),var(--gold));border-radius:1px;}
+    h1{font-size:clamp(1.7rem,4vw,2.6rem);font-weight:900;color:#fff;letter-spacing:-.01em;margin-bottom:.5rem;}
+    h1 span{background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .sub-text{color:var(--text-muted);font-size:.88rem;line-height:1.7;margin-bottom:2.5rem;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+    .card-inner{padding:2rem;}
+    .form-label{color:var(--text-muted);font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;margin-bottom:.45rem;}
+    .form-control,.form-select{
+      background:rgba(8,10,18,.8);border:1px solid var(--border2);color:var(--text);
+      font-family:'Montserrat',sans-serif;font-size:.85rem;border-radius:10px;padding:.6rem .95rem;
+      transition:border-color .2s,box-shadow .2s;
+    }
+    .form-control:focus,.form-select:focus{background:rgba(8,10,18,.95);border-color:var(--gold);color:var(--text);box-shadow:0 0 0 3px rgba(212,175,55,.12);}
+    .form-control::placeholder{color:var(--text-dim);}
+    .form-text{color:var(--text-dim);font-size:.68rem;margin-top:.3rem;}
+    .plan-option{
+      cursor:pointer;display:block;background:rgba(10,12,20,.8);
+      border:1.5px solid var(--border2);border-radius:14px;padding:1.1rem 1.25rem;
+      transition:all .18s;position:relative;user-select:none;
+    }
+    .plan-option:hover{border-color:rgba(212,175,55,.3);background:rgba(212,175,55,.05);}
+    .plan-option.selected{border-color:var(--gold);background:rgba(212,175,55,.06);box-shadow:0 0 0 1px rgba(212,175,55,.15);}
+    .plan-check{
+      position:absolute;top:.85rem;right:.85rem;width:22px;height:22px;border-radius:50%;
+      background:var(--bg);border:1.5px solid var(--border2);
+      display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--bg);transition:all .18s;
+    }
+    .plan-option.selected .plan-check{background:var(--gold);border-color:var(--gold);color:#05060a;}
+    .plan-name{font-weight:800;font-size:.9rem;color:var(--text);margin-bottom:.2rem;}
+    .plan-price{font-size:1.25rem;font-weight:900;color:var(--gold-light);}
+    .plan-price span{font-size:.72rem;font-weight:500;color:var(--text-muted);}
+    .plan-desc{font-size:.72rem;color:var(--text-muted);margin-top:.35rem;}
+    .btn-submit{
+      width:100%;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));
+      color:#05060a;border:none;font-weight:800;font-size:.92rem;
+      padding:.9rem;border-radius:12px;letter-spacing:.04em;
+      transition:all .22s;cursor:pointer;
+    }
+    .btn-submit:hover{filter:brightness(1.1);box-shadow:0 8px 28px rgba(212,175,55,.4);transform:translateY(-1px);}
+    .btn-submit:active{transform:translateY(0);}
+    .trust-badges{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.5rem;}
+    .trust-badge{
+      display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.03);
+      border:1px solid var(--border2);border-radius:8px;padding:.45rem .8rem;
+      font-size:.68rem;color:var(--text-muted);font-weight:600;
+    }
+    .trust-badge i{color:var(--gold);}
+    .alert-flash{
+      background:rgba(239,68,68,.1);border:0;border-left:3px solid #ef4444;
+      border-radius:10px;color:#f87171;font-size:.82rem;font-weight:600;padding:.8rem 1rem;
+      margin-bottom:1.5rem;
+    }
+    .alert-flash.warning{background:rgba(245,158,11,.1);border-left-color:#f59e0b;color:#fbbf24;}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+    .anim{animation:fadeInUp .45s ease both;}
+    .anim-2{animation:fadeInUp .45s .1s ease both;}
+    .anim-3{animation:fadeInUp .45s .2s ease both;}
+    @media(max-width:576px){.card-inner{padding:1.25rem;}.page-wrap{padding:2rem .75rem 3rem;}}
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="/" class="nav-logo">🏋️ {{ gym_name }}</a>
+  <a href="/" class="nav-back"><i class="bi bi-arrow-left"></i> Back</a>
+</nav>
+
+<main>
+  <div class="page-wrap">
+    <div class="row g-4">
+
+      <!-- FORM COLUMN -->
+      <div class="col-12 col-lg-7">
+        <div class="anim">
+          <div class="eyebrow">Online Registration</div>
+          <h1>Join <span>{{ gym_name }}</span></h1>
+          <p class="sub-text">
+            Fill in your details below. We'll WhatsApp you confirmation and payment instructions right away.
+          </p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for cat, msg in messages %}
+              <div class="alert-flash {{ 'warning' if cat == 'warning' else '' }}">{{ msg }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="card anim-2">
+          <div class="card-inner">
+            <form method="post">
+              <div class="row g-3">
+
+                <div class="col-12">
+                  <label class="form-label">Full Name *</label>
+                  <input type="text" name="name" class="form-control"
+                         placeholder="e.g. Ahmad Fariz" required
+                         value="{{ request.form.get('name', '') }}" />
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">WhatsApp Number *</label>
+                  <input type="tel" name="phone" class="form-control"
+                         placeholder="e.g. 60123456789" required
+                         value="{{ request.form.get('phone', '') }}" />
+                  <div class="form-text">Include country code, no spaces (e.g. 60123456789). We'll send confirmation here.</div>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Membership Plan *</label>
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <label class="plan-option" id="opt-regular">
+                        <input type="radio" name="membership_type" value="regular" class="d-none" id="r-regular"
+                               {% if not request.form.get('membership_type') or request.form.get('membership_type') == 'regular' %}checked{% endif %} />
+                        <div class="plan-check"><i class="bi bi-check-lg"></i></div>
+                        <div class="plan-name">Regular</div>
+                        <div class="plan-price">{{ gym_price_regular }} <span></span></div>
+                        <div class="plan-desc">Open to everyone</div>
+                      </label>
+                    </div>
+                    <div class="col-6">
+                      <label class="plan-option" id="opt-student">
+                        <input type="radio" name="membership_type" value="student" class="d-none" id="r-student"
+                               {% if request.form.get('membership_type') == 'student' %}checked{% endif %} />
+                        <div class="plan-check"><i class="bi bi-check-lg"></i></div>
+                        <div class="plan-name">Student</div>
+                        <div class="plan-price">{{ gym_price_student }} <span></span></div>
+                        <div class="plan-desc">Valid student ID required</div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.72rem;">(optional)</span></label>
+                  <textarea name="notes" class="form-control" rows="2"
+                            placeholder="Any questions or special requests…">{{ request.form.get('notes', '') }}</textarea>
+                </div>
+
+                <div class="col-12 mt-1">
+                  <button type="submit" class="btn-submit">
+                    <i class="bi bi-person-check-fill me-2"></i>Submit Application
+                  </button>
+                  <div class="trust-badges">
+                    <div class="trust-badge"><i class="bi bi-whatsapp"></i>WhatsApp confirmation</div>
+                    <div class="trust-badge"><i class="bi bi-shield-check"></i>Secure & private</div>
+                    <div class="trust-badge"><i class="bi bi-clock-fill"></i>Approved within 24h</div>
+                  </div>
+                </div>
+
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- INFO COLUMN -->
+      <div class="col-12 col-lg-5 d-none d-lg-flex flex-column gap-3 anim-3">
+
+        <div style="border-radius:18px;overflow:hidden;flex:1;min-height:260px;position:relative;border:1px solid var(--border);">
+          <img src="https://images.unsplash.com/photo-1581009137042-c552e485697a?auto=format&fit=crop&w=700&q=70"
+               alt="" style="width:100%;height:100%;object-fit:cover;" />
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(7,8,13,.97) 0%,rgba(7,8,13,.1) 60%);display:flex;align-items:flex-end;padding:1.5rem;">
+            <div>
+              <div style="color:var(--gold);font-size:.6rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;">{{ gym_name }}</div>
+              <div style="color:#fff;font-weight:900;font-size:1rem;margin:.2rem 0;">Every Rep Counts. 💪</div>
+              <div style="color:#5a6070;font-size:.75rem;">Join our community today.</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.4rem;">
+          <div style="color:var(--text-muted);font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem;">What Happens Next</div>
+          <div style="display:flex;flex-direction:column;gap:.85rem;">
+            <div style="display:flex;gap:.9rem;align-items:flex-start;">
+              <div style="background:rgba(212,175,55,.1);border:1px solid var(--border);border-radius:8px;min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--gold);">1</div>
+              <div>
+                <div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:.15rem;">Submit Your Application</div>
+                <div style="font-size:.72rem;color:var(--text-muted);">Fill in the form and click submit.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:.9rem;align-items:flex-start;">
+              <div style="background:rgba(212,175,55,.1);border:1px solid var(--border);border-radius:8px;min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--gold);">2</div>
+              <div>
+                <div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:.15rem;">We'll WhatsApp You</div>
+                <div style="font-size:.72rem;color:var(--text-muted);">Payment instructions sent to your number within minutes.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:.9rem;align-items:flex-start;">
+              <div style="background:rgba(212,175,55,.1);border:1px solid var(--border);border-radius:8px;min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--gold);">3</div>
+              <div>
+                <div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:.15rem;">Make Payment & Start</div>
+                <div style="font-size:.72rem;color:var(--text-muted);">Bank transfer → confirmed → ready to train!</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.4rem;">
+          <div style="color:var(--text-muted);font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.85rem;">Opening Hours</div>
+          <div style="font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:.3rem;">Mon–Fri: {{ gym_hours_weekday }}</div>
+          <div style="font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:.9rem;">Sat–Sun: {{ gym_hours_weekend }}</div>
+          <a href="https://wa.me/{{ gym_phone }}" target="_blank"
+             style="display:flex;align-items:center;gap:.5rem;color:#34d399;font-size:.82rem;font-weight:700;text-decoration:none;">
+            <i class="bi bi-whatsapp" style="font-size:1rem;"></i> Chat with us on WhatsApp
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function syncPlan() {
+    document.getElementById('opt-regular').classList.toggle('selected', document.getElementById('r-regular').checked);
+    document.getElementById('opt-student').classList.toggle('selected', document.getElementById('r-student').checked);
+  }
+  document.querySelectorAll('[name="membership_type"]').forEach(r => r.addEventListener('change', syncPlan));
+  document.querySelectorAll('.plan-option').forEach(l => l.addEventListener('click', syncPlan));
+  syncPlan();
+
+  // Pre-select plan from URL
+  const plan = new URLSearchParams(location.search).get('plan');
+  if (plan === 'student') {
+    document.getElementById('r-student').checked = true;
+    syncPlan();
+  }
+</script>
+</body>
+</html>

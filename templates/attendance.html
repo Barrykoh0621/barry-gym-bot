@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Attendance — {{ gym_name }}{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <img class="page-hero-img"
+       src="https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?auto=format&fit=crop&w=1400&q=70"
+       alt="" />
+  <div class="page-hero-overlay">
+    <div>
+      <div class="hero-eyebrow">Tracking</div>
+      <h1 class="hero-title">Attendance <span>Log</span></h1>
+      <div class="hero-sub">{{ records|length }} record{{ 's' if records|length != 1 }} — {{ filter_date }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <!-- Quick actions -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 animate-up">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-text" style="color:#34d399;">
+            <i class="bi bi-box-arrow-in-right" style="color:#10b981;"></i> Quick Check-in
+          </div>
+        </div>
+        <div style="padding:.9rem 1.1rem;">
+          <form method="post" action="{{ url_for('web_checkin') }}">
+            <div class="d-flex gap-2">
+              <select name="member_id" class="form-select form-select-sm" required>
+                <option value="" disabled selected>Select member…</option>
+                {% for m in all_members %}
+                  <option value="{{ m.id }}">{{ m.name }} — {{ m.phone }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-gold btn-sm flex-shrink-0">
+                <i class="bi bi-box-arrow-in-right me-1"></i>In
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 animate-up-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-text" style="color:#f87171;">
+            <i class="bi bi-box-arrow-right" style="color:#ef4444;"></i> Quick Check-out
+          </div>
+        </div>
+        <div style="padding:.9rem 1.1rem;">
+          <form method="post" action="{{ url_for('web_checkout') }}">
+            <div class="d-flex gap-2">
+              <select name="member_id" class="form-select form-select-sm" required>
+                <option value="" disabled selected>Select member…</option>
+                {% for m in all_members %}
+                  <option value="{{ m.id }}">{{ m.name }} — {{ m.phone }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-danger-ghost btn-sm flex-shrink-0" style="border-radius:9px;">
+                <i class="bi bi-box-arrow-right me-1"></i>Out
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date filter -->
+  <form method="get" class="mb-3 animate-up-3">
+    <div class="d-flex align-items-center gap-2" style="max-width:300px;">
+      <input type="date" name="date" class="form-control form-control-sm" value="{{ filter_date }}" />
+      <button type="submit" class="btn btn-outline-gold btn-sm flex-shrink-0">Filter</button>
+    </div>
+  </form>
+
+  <!-- Records -->
+  <div class="card animate-up-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <div class="card-title-text">
+        <i class="bi bi-list-check"></i> Records
+      </div>
+      <span style="color:var(--text-dim);font-size:.7rem;">{{ filter_date }}</span>
+    </div>
+    {% if records %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Member</th>
+              <th>Phone</th>
+              <th>Check-in</th>
+              <th>Check-out</th>
+              <th>Duration</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in records %}
+            <tr>
+              <td style="color:var(--text-dim);font-size:.72rem;">{{ loop.index }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="member-avatar" style="width:28px;height:28px;font-size:.7rem;">{{ r.member_name[0].upper() }}</div>
+                  <span style="font-weight:600;">{{ r.member_name }}</span>
+                </div>
+              </td>
+              <td style="color:var(--text-muted);font-size:.78rem;font-family:monospace;">{{ r.member_phone }}</td>
+              <td style="color:var(--gold-light);font-weight:700;">{{ r.check_in[11:16] if r.check_in else '—' }}</td>
+              <td style="color:var(--text-muted);">{{ r.check_out[11:16] if r.check_out else '—' }}</td>
+              <td>
+                {% if r.check_in and r.check_out %}
+                  <span id="dur-{{ r.id }}" data-in="{{ r.check_in }}" data-out="{{ r.check_out }}"
+                        style="color:var(--text-muted);font-size:.8rem;">—</span>
+                {% else %}
+                  <span style="color:var(--text-dim);font-size:.8rem;">—</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if not r.check_out %}
+                  <span class="badge badge-in">In Gym</span>
+                {% else %}
+                  <span class="badge" style="background:rgba(255,255,255,.04);color:var(--text-muted);border-color:var(--border2);">Done</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5" style="color:var(--text-dim);">
+        <i class="bi bi-calendar-x" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+        <div style="font-size:.82rem;">No records for <strong style="color:var(--text);">{{ filter_date }}</strong>.</div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('[id^="dur-"]').forEach(el => {
+    const ms = new Date(el.dataset.out.replace(' ','T')) - new Date(el.dataset.in.replace(' ','T'));
+    const mins = Math.round(ms / 60000);
+    el.textContent = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
+  });
+</script>
+{% endblock %}

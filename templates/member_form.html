@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Member — {{ gym_name }}{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <img class="page-hero-img"
+       src="https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&w=1400&q=70"
+       alt="" />
+  <div class="page-hero-overlay">
+    <div>
+      <div class="hero-eyebrow">Members</div>
+      <h1 class="hero-title">{{ action }} <span>Member</span></h1>
+      <div class="hero-sub">
+        <a href="{{ url_for('members') }}" style="color:#7a8090;text-decoration:none;">
+          <i class="bi bi-arrow-left me-1"></i>Back to Members
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="content-wrap">
+  <div class="row g-4">
+
+    <!-- Form -->
+    <div class="col-12 col-lg-7 animate-up">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-text">
+            <i class="bi bi-person-vcard-fill"></i> Member Information
+          </div>
+        </div>
+        <div style="padding:1.75rem 1.75rem 1.5rem;">
+          <form method="post">
+            <div class="row g-3">
+
+              <div class="col-12">
+                <label class="form-label">Full Name *</label>
+                <input type="text" name="name" class="form-control"
+                       value="{{ member.name if member else '' }}"
+                       placeholder="e.g. Ahmad Fariz" required />
+              </div>
+
+              <div class="col-12">
+                <label class="form-label">Phone Number *</label>
+                <input type="text" name="phone" class="form-control"
+                       value="{{ member.phone if member else '' }}"
+                       placeholder="e.g. 60123456789" required />
+                <div class="form-text mt-1">Include country code, no spaces (e.g. 60123456789)</div>
+              </div>
+
+              <!-- Plan picker -->
+              <div class="col-12">
+                <label class="form-label">Membership Plan *</label>
+                <div class="row g-2 mt-0" id="plan-picker">
+                  <div class="col-6">
+                    <label class="plan-option" id="opt-regular">
+                      <input type="radio" name="membership_type" value="regular" class="d-none" id="r-regular"
+                             {% if not member or member.membership_type == 'regular' %}checked{% endif %} />
+                      <div class="plan-check"><i class="bi bi-check-lg"></i></div>
+                      <div class="plan-name">Regular</div>
+                      <div class="plan-price">RM 100 <span>/month</span></div>
+                    </label>
+                  </div>
+                  <div class="col-6">
+                    <label class="plan-option" id="opt-student">
+                      <input type="radio" name="membership_type" value="student" class="d-none" id="r-student"
+                             {% if member and member.membership_type == 'student' %}checked{% endif %} />
+                      <div class="plan-check"><i class="bi bi-check-lg"></i></div>
+                      <div class="plan-name">Student</div>
+                      <div class="plan-price">RM 60 <span>/month</span></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <label class="form-label">Start Date *</label>
+                <input type="date" name="start_date" id="start_date" class="form-control"
+                       value="{{ member.start_date if member else today }}" required />
+              </div>
+
+              <div class="col-6">
+                <label class="form-label">Expiry Date *</label>
+                <input type="date" name="expiry_date" id="expiry_date" class="form-control"
+                       value="{{ member.expiry_date if member else '' }}" required />
+              </div>
+
+              <div class="col-12">
+                <label class="form-label">Payment Status *</label>
+                <select name="payment_status" class="form-select">
+                  <option value="paid"    {% if member and member.payment_status == 'paid'    %}selected{% endif %}>✅ Paid</option>
+                  <option value="pending" {% if not member or member.payment_status == 'pending' %}selected{% endif %}>⏳ Pending</option>
+                  <option value="overdue" {% if member and member.payment_status == 'overdue' %}selected{% endif %}>❌ Overdue</option>
+                </select>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label">Notes <span style="font-size:.62rem;text-transform:none;letter-spacing:0;color:var(--text-dim);">(optional)</span></label>
+                <textarea name="notes" class="form-control" rows="2"
+                          placeholder="Any notes about this member…">{{ member.notes if member else '' }}</textarea>
+              </div>
+
+              <div class="col-12 d-flex gap-2 mt-2">
+                <button type="submit" class="btn btn-gold px-4">
+                  <i class="bi bi-check-lg me-1"></i>{{ action }} Member
+                </button>
+                <a href="{{ url_for('members') }}" class="btn btn-ghost px-3">Cancel</a>
+              </div>
+
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side photo -->
+    <div class="col-12 col-lg-5 d-none d-lg-flex flex-column gap-3 animate-up-2">
+      <div style="border-radius:16px;overflow:hidden;flex:1;min-height:300px;position:relative;border:1px solid var(--border);">
+        <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=700&q=70"
+             alt="" style="width:100%;height:100%;object-fit:cover;" />
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(7,8,13,.96) 0%,rgba(7,8,13,.08) 60%);display:flex;align-items:flex-end;padding:1.5rem;">
+          <div>
+            <div style="color:var(--gold);font-size:.6rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;">{{ gym_name }}</div>
+            <div style="color:#fff;font-weight:900;font-size:1.1rem;margin:.25rem 0 .2rem;letter-spacing:-.01em;">Every Rep Counts. 🏋️</div>
+            <div style="color:#5a6070;font-size:.75rem;">Join our community of dedicated athletes.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plan info cards -->
+      <div class="card" style="flex-shrink:0;">
+        <div style="padding:1.1rem 1.25rem;">
+          <div style="color:var(--text-muted);font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;">Plan Benefits</div>
+          <div class="d-flex gap-3">
+            <div style="flex:1;text-align:center;padding:.75rem;background:var(--bg3);border-radius:10px;border:1px solid var(--border);">
+              <div style="font-size:1.3rem;">🏋️</div>
+              <div style="font-size:.72rem;font-weight:700;color:var(--text);margin:.3rem 0 .1rem;">Full Access</div>
+              <div style="font-size:.65rem;color:var(--text-muted);">All equipment</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:.75rem;background:var(--bg3);border-radius:10px;border:1px solid var(--border);">
+              <div style="font-size:1.3rem;">📱</div>
+              <div style="font-size:.72rem;font-weight:700;color:var(--text);margin:.3rem 0 .1rem;">WhatsApp</div>
+              <div style="font-size:.65rem;color:var(--text-muted);">Auto reminders</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:.75rem;background:var(--bg3);border-radius:10px;border:1px solid var(--border);">
+              <div style="font-size:1.3rem;">✅</div>
+              <div style="font-size:.72rem;font-weight:700;color:var(--text);margin:.3rem 0 .1rem;">Check-in</div>
+              <div style="font-size:.65rem;color:var(--text-muted);">QR or app</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .plan-option {
+    cursor: pointer;
+    display: block;
+    background: var(--bg3);
+    border: 1.5px solid var(--border2);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    transition: all .18s;
+    position: relative;
+    user-select: none;
+  }
+  .plan-option:hover { border-color: rgba(212,175,55,.3); background: var(--gold-faint); }
+  .plan-option.selected {
+    border-color: var(--gold);
+    background: var(--gold-faint);
+    box-shadow: 0 0 0 1px rgba(212,175,55,.15);
+  }
+  .plan-check {
+    position: absolute; top: .75rem; right: .75rem;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1.5px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .6rem; color: var(--bg);
+    transition: all .18s;
+  }
+  .plan-option.selected .plan-check { background: var(--gold); border-color: var(--gold); color: #05060a; }
+  .plan-name { font-weight: 800; font-size: .88rem; color: var(--text); margin-bottom: .3rem; }
+  .plan-price { font-size: 1.15rem; font-weight: 900; color: var(--gold-light); }
+  .plan-price span { font-size: .72rem; font-weight: 500; color: var(--text-muted); }
+</style>
+
+<script>
+  function syncPlan() {
+    document.getElementById('opt-regular').classList.toggle('selected', document.getElementById('r-regular').checked);
+    document.getElementById('opt-student').classList.toggle('selected', document.getElementById('r-student').checked);
+  }
+  document.querySelectorAll('[name="membership_type"]').forEach(r => r.addEventListener('change', syncPlan));
+  document.querySelectorAll('.plan-option').forEach(l => l.addEventListener('click', syncPlan));
+  syncPlan();
+
+  document.getElementById('start_date').addEventListener('change', function() {
+    const exp = document.getElementById('expiry_date');
+    if (!exp.value) {
+      const d = new Date(this.value);
+      d.setMonth(d.getMonth() + 1);
+      exp.value = d.toISOString().split('T')[0];
+    }
+  });
+</script>
+{% endblock %}

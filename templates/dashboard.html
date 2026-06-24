@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — {{ gym_name }}{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO ─────────────────────────────────────── -->
+<div class="page-hero" style="height:240px;">
+  <img class="page-hero-img"
+       src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1400&q=75"
+       alt="" />
+  <div class="page-hero-overlay" style="background:linear-gradient(108deg,rgba(7,8,13,.98) 0%,rgba(7,8,13,.72) 52%,rgba(7,8,13,.12) 100%);">
+    <div>
+      <div class="hero-eyebrow">Good morning</div>
+      <h1 class="hero-title">{{ gym_name }}<br /><span>Overview</span></h1>
+      <div class="hero-sub d-flex align-items-center gap-3">
+        <span><i class="bi bi-calendar3 me-1"></i><span id="live-date"></span></span>
+        <span style="color:var(--text-dim);">|</span>
+        <span><i class="bi bi-clock me-1"></i><span id="live-time"></span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── STATS ─────────────────────────────────────── -->
+<div class="content-wrap">
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3 animate-up">
+      <div class="stat-card">
+        <div class="stat-card-icon"><i class="bi bi-people-fill" style="color:var(--gold);"></i></div>
+        <div class="stat-card-value" data-count="{{ stats.total_members }}">{{ stats.total_members }}</div>
+        <div class="stat-card-label">Total Members</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 animate-up-2">
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.18);">
+          <i class="bi bi-patch-check-fill" style="color:#10b981;"></i>
+        </div>
+        <div class="stat-card-value green" data-count="{{ stats.active_members }}">{{ stats.active_members }}</div>
+        <div class="stat-card-label">Active Members</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 animate-up-3">
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(96,165,250,.08);border-color:rgba(96,165,250,.18);">
+          <i class="bi bi-door-open-fill" style="color:#60a5fa;"></i>
+        </div>
+        <div class="stat-card-value blue" data-count="{{ stats.today_checkins }}">{{ stats.today_checkins }}</div>
+        <div class="stat-card-label">Today's Check-ins</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 animate-up-4">
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.18);">
+          <i class="bi bi-credit-card-fill" style="color:#f59e0b;"></i>
+        </div>
+        <div class="stat-card-value yellow" data-count="{{ stats.pending_payment }}">{{ stats.pending_payment }}</div>
+        <div class="stat-card-label">Pending Payments</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 animate-up">
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.18);">
+          <i class="bi bi-person-plus-fill" style="color:#a78bfa;"></i>
+        </div>
+        <div class="stat-card-value" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;" data-count="{{ pending_apps }}">{{ pending_apps }}</div>
+        <div class="stat-card-label">New Applications</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 animate-up-2">
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.18);">
+          <i class="bi bi-currency-dollar" style="color:#10b981;"></i>
+        </div>
+        <div class="stat-card-value green" data-prefix="RM " data-count="{{ total_revenue }}">RM {{ total_revenue }}</div>
+        <div class="stat-card-label">Total Revenue</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN CONTENT ROW ─────────────────────────── -->
+  <div class="row g-3">
+
+    <!-- Check-ins list -->
+    <div class="col-12 col-xl-7 animate-up-2">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div class="card-title-text">
+            <i class="bi bi-door-open-fill"></i> Today's Check-ins
+          </div>
+          <a href="{{ url_for('attendance') }}" class="btn btn-outline-gold btn-sm" style="font-size:.7rem;padding:.22rem .65rem;">
+            View All
+          </a>
+        </div>
+        {% if stats.recent_checkins %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in stats.recent_checkins %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="member-avatar">{{ r.member_name[0].upper() }}</div>
+                    <span style="font-weight:600;">{{ r.member_name }}</span>
+                  </div>
+                </td>
+                <td style="color:var(--gold-light);font-weight:600;">{{ r.check_in[11:16] if r.check_in else '—' }}</td>
+                <td style="color:var(--text-muted);">{{ r.check_out[11:16] if r.check_out else '—' }}</td>
+                <td>
+                  {% if not r.check_out %}
+                    <span class="badge badge-in">In Gym</span>
+                  {% else %}
+                    <span class="badge" style="background:rgba(255,255,255,.04);color:var(--text-muted);border-color:var(--border2);">Done</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="text-center py-5" style="color:var(--text-dim);">
+            <i class="bi bi-door-open" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+            <div style="font-size:.82rem;">No check-ins today yet.</div>
+            <a href="{{ url_for('attendance') }}" class="btn btn-outline-gold btn-sm mt-3" style="font-size:.75rem;">Record Check-in</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="col-12 col-xl-5 d-flex flex-column gap-3">
+
+      <!-- Expiring soon card -->
+      <div class="card animate-up-3">
+        <div class="card-header">
+          <div class="card-title-text">
+            <i class="bi bi-exclamation-triangle-fill" style="color:var(--warning);"></i> Expiring This Week
+          </div>
+        </div>
+        {% if stats.expiring_soon %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Expires</th>
+                <th>Payment</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in stats.expiring_soon %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('member_edit', member_id=m.id) }}"
+                     style="color:var(--text);text-decoration:none;font-weight:600;">{{ m.name }}</a>
+                </td>
+                <td style="color:#f87171;font-size:.78rem;">{{ m.expiry_date }}</td>
+                <td><span class="badge badge-{{ m.payment_status }}">{{ m.payment_status.title() }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="text-center py-3" style="color:var(--text-dim);font-size:.8rem;">
+            <i class="bi bi-check-circle-fill" style="display:block;font-size:1.8rem;margin-bottom:.4rem;color:rgba(16,185,129,.3);"></i>
+            All memberships are current.
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- 6-month revenue trend -->
+      {% if trend %}
+      <div class="card animate-up-4" style="flex-shrink:0;">
+        <div class="card-header">
+          <div class="card-title-text">
+            <i class="bi bi-graph-up-arrow"></i> 6-Month Revenue Trend
+          </div>
+        </div>
+        <div style="padding:.9rem 1.1rem;">
+          <canvas id="trendChart" height="120"></canvas>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Motivational gym photo card -->
+      <div style="position:relative;border-radius:16px;overflow:hidden;height:168px;border:1px solid var(--border);flex-shrink:0;" class="animate-up-4">
+        <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=800&q=70"
+             alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 35%;" />
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(7,8,13,.95) 0%,rgba(7,8,13,.15) 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:1.25rem 1.4rem;">
+          <div style="color:var(--gold);font-size:.6rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.2rem;">Barry's Gym</div>
+          <div style="color:#fff;font-weight:900;font-size:1rem;letter-spacing:-.01em;">Train Hard. Stay Strong. 💪</div>
+          <div style="color:#6a7080;font-size:.72rem;margin-top:.2rem;">Achieve your goals every day.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('live-date').textContent = now.toLocaleDateString('en-MY', {
+      weekday:'long', year:'numeric', month:'long', day:'numeric'
+    });
+    document.getElementById('live-time').textContent = now.toLocaleTimeString('en-MY', {
+      hour:'2-digit', minute:'2-digit'
+    });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  {% if trend %}
+  const trendLabels = {{ trend | map(attribute=0) | list | tojson }};
+  const trendValues = {{ trend | map(attribute=1) | list | tojson }};
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: trendLabels,
+      datasets: [{
+        label: 'Revenue (RM)',
+        data: trendValues,
+        borderColor: '#D4AF37',
+        backgroundColor: 'rgba(212,175,55,.08)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#F0C848',
+        pointBorderColor: '#07080d',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        tension: 0.4,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(14,16,26,.95)',
+          borderColor: 'rgba(212,175,55,.3)',
+          borderWidth: 1,
+          titleColor: '#D4AF37',
+          bodyColor: '#eae6d9',
+          callbacks: {
+            label: ctx => ` RM ${ctx.parsed.y.toLocaleString()}`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#5c6275', font: { size: 10, family: 'Montserrat', weight: '600' } } },
+        y: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#5c6275', font: { size: 10, family: 'Montserrat' }, callback: v => 'RM '+v } }
+      }
+    }
+  });
+  {% endif %}
+</script>
+{% endblock %}
