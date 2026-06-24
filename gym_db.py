@@ -6,7 +6,9 @@ import sqlite3
 import os
 from datetime import datetime, date, timedelta
 
-DB_PATH = os.environ.get("DB_PATH", "gym.db")
+# Use /data/gym.db if the directory exists (Railway volume), else local
+_default_db = "/data/gym.db" if os.path.isdir("/data") else "gym.db"
+DB_PATH = os.environ.get("DB_PATH", _default_db)
 
 
 def get_db():
