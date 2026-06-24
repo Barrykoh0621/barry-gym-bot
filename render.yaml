@@ -4,11 +4,11 @@ services:
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --preload
+    disk:
+      name: gymdata
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
-      - key: ULTRAMSG_INSTANCE
-        value: instance169328
-      - key: ULTRAMSG_TOKEN
-        value: ifk8d1jpsnl540eb
       - key: GYM_NAME
         value: Barry's Gym
       - key: GYM_PHONE
@@ -29,9 +29,15 @@ services:
         value: Barry Gym
       - key: QR_CODE_IMAGE_URL
         value: ""
+      - key: BASE_URL
+        value: https://barry-gym-bot.onrender.com
       - key: SECRET_KEY
         generateValue: true
       - key: DB_PATH
         value: /var/data/gym.db
       - key: TZ
         value: Asia/Kuala_Lumpur
+      - key: ULTRAMSG_INSTANCE
+        sync: false
+      - key: ULTRAMSG_TOKEN
+        sync: false
