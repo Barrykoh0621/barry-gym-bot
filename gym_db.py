@@ -358,3 +358,61 @@ def auto_mark_overdue():
     conn.commit()
     conn.close()
     return count
+
+
+# ── Revenue trend ─────────────────────────────────────────────
+
+def get_monthly_revenue_trend(months=6):
+    """Returns list of (month_label, total) for last N months."""
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT strftime('%Y-%m', payment_date) as month,
+               COALESCE(SUM(amount), 0) as total
+        FROM payments
+        WHERE payment_date >= date('now', ? || ' months')
+        GROUP BY month
+        ORDER BY month ASC
+    """, (f"-{months}",)).fetchall()
+    conn.close()
+    return [(r["month"], r["total"]) for r in rows]
+
+
+def get_total_revenue():
+    conn = get_db()
+    row = conn.execute("SELECT COALESCE(SUM(amount),0) as t FROM payments").fetchone()
+    conn.close()
+    return int(row["t"])
+
+
+# ── Online applications ───────────────────────────────────────
+
+def get_pending_applications():
+    """Returns members who registered via the online join form."""
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM members WHERE notes LIKE '[APPLICATION]%' ORDER BY created_at DESC"
+    ).fetchall()
+    conn.close()
+    return rows
+
+
+def get_pending_application_count():
+    conn = get_db()
+    count = conn.execute(
+        "SELECT COUNT(*) FROM members WHERE notes LIKE '[APPLICATION]%' AND payment_status = 'pending'"
+    ).fetchone()[0]
+    conn.close()
+    return count
+
+
+# ── Member check-in history (for portal) ─────────────────────
+
+def get_member_checkin_history(member_id, limit=10):
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT * FROM attendance WHERE member_id = ?
+           ORDER BY check_in DESC LIMIT ?""",
+        (member_id, limit)
+    ).fetchall()
+    conn.close()
+    return rows

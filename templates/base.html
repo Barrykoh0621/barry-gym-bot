@@ -572,8 +572,8 @@
   <div class="sidebar-nav">
     <div class="nav-section">Main</div>
 
-    <a class="sidebar-link {% if request.endpoint == 'dashboard' %}active{% endif %}"
-       href="{{ url_for('dashboard') }}">
+    <a class="sidebar-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}"
+       href="{{ url_for('admin_dashboard') }}">
       <i class="bi bi-grid-1x2-fill"></i> Dashboard
     </a>
     <a class="sidebar-link {% if request.endpoint in ['members','member_new','member_edit'] %}active{% endif %}"
@@ -597,6 +597,19 @@
     </a>
     <a class="sidebar-link" href="{{ url_for('attendance') }}">
       <i class="bi bi-box-arrow-in-right"></i> Check In
+    </a>
+
+    <hr class="gold-divider" />
+    <div class="nav-section">Public Pages</div>
+
+    <a class="sidebar-link" href="/" target="_blank">
+      <i class="bi bi-globe2"></i> Landing Page
+    </a>
+    <a class="sidebar-link" href="/join" target="_blank">
+      <i class="bi bi-person-plus"></i> Join Form
+    </a>
+    <a class="sidebar-link" href="/portal" target="_blank">
+      <i class="bi bi-person-badge"></i> Member Portal
     </a>
   </div>
 

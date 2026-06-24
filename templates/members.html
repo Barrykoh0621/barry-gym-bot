@@ -79,6 +79,11 @@
                     </button>
                   </form>
                   {% endif %}
+                  <a href="{{ base_url }}/qr/{{ m.id }}/{{ checkin_token_fn(m.id) }}"
+                     class="btn btn-ghost btn-sm" style="padding:.25rem .55rem;" title="QR Check-in Link"
+                     target="_blank">
+                    <i class="bi bi-qr-code"></i>
+                  </a>
                   <a href="{{ url_for('member_edit', member_id=m.id) }}"
                      class="btn btn-outline-gold btn-sm" style="padding:.25rem .55rem;" title="Edit">
                     <i class="bi bi-pencil-fill"></i>

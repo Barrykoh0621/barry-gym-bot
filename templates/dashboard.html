@@ -58,6 +58,24 @@
         <div class="stat-card-label">Pending Payments</div>
       </div>
     </div>
+    <div class="col-6 col-lg-3 animate-up">
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.18);">
+          <i class="bi bi-person-plus-fill" style="color:#a78bfa;"></i>
+        </div>
+        <div class="stat-card-value" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;" data-count="{{ pending_apps }}">{{ pending_apps }}</div>
+        <div class="stat-card-label">New Applications</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 animate-up-2">
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.18);">
+          <i class="bi bi-currency-dollar" style="color:#10b981;"></i>
+        </div>
+        <div class="stat-card-value green" data-prefix="RM " data-count="{{ total_revenue }}">RM {{ total_revenue }}</div>
+        <div class="stat-card-label">Total Revenue</div>
+      </div>
+    </div>
   </div>
 
   <!-- ── MAIN CONTENT ROW ─────────────────────────── -->
@@ -156,6 +174,20 @@
         {% endif %}
       </div>
 
+      <!-- 6-month revenue trend -->
+      {% if trend %}
+      <div class="card animate-up-4" style="flex-shrink:0;">
+        <div class="card-header">
+          <div class="card-title-text">
+            <i class="bi bi-graph-up-arrow"></i> 6-Month Revenue Trend
+          </div>
+        </div>
+        <div style="padding:.9rem 1.1rem;">
+          <canvas id="trendChart" height="120"></canvas>
+        </div>
+      </div>
+      {% endif %}
+
       <!-- Motivational gym photo card -->
       <div style="position:relative;border-radius:16px;overflow:hidden;height:168px;border:1px solid var(--border);flex-shrink:0;" class="animate-up-4">
         <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=800&q=70"
@@ -171,6 +203,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
   function updateClock() {
     const now = new Date();
@@ -183,5 +216,49 @@
   }
   updateClock();
   setInterval(updateClock, 1000);
+
+  {% if trend %}
+  const trendLabels = {{ trend | map(attribute=0) | list | tojson }};
+  const trendValues = {{ trend | map(attribute=1) | list | tojson }};
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: trendLabels,
+      datasets: [{
+        label: 'Revenue (RM)',
+        data: trendValues,
+        borderColor: '#D4AF37',
+        backgroundColor: 'rgba(212,175,55,.08)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#F0C848',
+        pointBorderColor: '#07080d',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        tension: 0.4,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(14,16,26,.95)',
+          borderColor: 'rgba(212,175,55,.3)',
+          borderWidth: 1,
+          titleColor: '#D4AF37',
+          bodyColor: '#eae6d9',
+          callbacks: {
+            label: ctx => ` RM ${ctx.parsed.y.toLocaleString()}`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#5c6275', font: { size: 10, family: 'Montserrat', weight: '600' } } },
+        y: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#5c6275', font: { size: 10, family: 'Montserrat' }, callback: v => 'RM '+v } }
+      }
+    }
+  });
+  {% endif %}
 </script>
 {% endblock %}

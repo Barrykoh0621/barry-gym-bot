@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Member Portal — {{ gym_name }}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root{--gold:#D4AF37;--gold-light:#F0C848;--gold-dark:#9A7D20;--bg:#07080d;--surface:rgba(14,16,26,.93);--border:rgba(212,175,55,.13);--border2:rgba(255,255,255,.05);--text:#eae6d9;--text-muted:#5c6275;--text-dim:#373b4d;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;font-size:14px;min-height:100vh;}
+    body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 80% 60% at 50% 15%,rgba(212,175,55,.055) 0%,transparent 60%);}
+    .top-nav{position:fixed;top:0;left:0;right:0;z-index:999;display:flex;align-items:center;justify-content:space-between;padding:.85rem 2rem;background:rgba(7,8,13,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-size:.95rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;}
+    .nav-back{color:var(--text-muted);text-decoration:none;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:.4rem;transition:color .15s;}
+    .nav-back:hover{color:var(--gold-light);}
+    main{padding-top:80px;min-height:100vh;position:relative;z-index:1;}
+    .page-wrap{max-width:700px;margin:0 auto;padding:2.5rem 1.25rem 4rem;}
+    .eyebrow{color:var(--gold);font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.16em;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem;}
+    .eyebrow::before{content:'';display:block;width:20px;height:2px;background:linear-gradient(to right,var(--gold-dark),var(--gold));border-radius:1px;}
+    h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:900;color:#fff;letter-spacing:-.01em;margin-bottom:.5rem;}
+    h1 span{background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+    .form-label{color:var(--text-muted);font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;margin-bottom:.45rem;}
+    .form-control{background:rgba(8,10,18,.8);border:1px solid var(--border2);color:var(--text);font-family:'Montserrat',sans-serif;font-size:.85rem;border-radius:10px;padding:.6rem .95rem;transition:border-color .2s,box-shadow .2s;}
+    .form-control:focus{background:rgba(8,10,18,.95);border-color:var(--gold);color:var(--text);box-shadow:0 0 0 3px rgba(212,175,55,.12);}
+    .form-control::placeholder{color:var(--text-dim);}
+    .btn-lookup{background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:#05060a;border:none;font-weight:800;font-size:.88rem;padding:.6rem 1.6rem;border-radius:10px;letter-spacing:.04em;transition:all .2s;flex-shrink:0;}
+    .btn-lookup:hover{filter:brightness(1.1);box-shadow:0 6px 20px rgba(212,175,55,.35);}
+    .error-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.18);border-radius:12px;padding:1rem 1.25rem;color:#f87171;font-size:.82rem;font-weight:600;margin-top:1rem;}
+    .member-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-top:1.5rem;}
+    .member-card-header{
+      position:relative;height:120px;
+      background-image:url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=700&q=70');
+      background-size:cover;background-position:center 40%;
+    }
+    .member-card-header::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,8,13,.3) 0%,rgba(7,8,13,.92) 100%);}
+    .member-card-avatar{
+      position:absolute;bottom:-28px;left:1.5rem;z-index:2;
+      width:56px;height:56px;border-radius:50%;
+      background:linear-gradient(135deg,var(--gold-dark),var(--gold));
+      display:flex;align-items:center;justify-content:center;
+      font-weight:900;font-size:1.4rem;color:#05060a;
+      border:3px solid var(--bg);
+    }
+    .member-card-body{padding:2.25rem 1.5rem 1.5rem;}
+    .member-name{font-size:1.3rem;font-weight:900;color:var(--text);margin-bottom:.15rem;}
+    .member-plan{font-size:.72rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1.25rem;}
+    .info-item{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:12px;padding:.85rem 1rem;}
+    .info-label{color:var(--text-muted);font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.3rem;}
+    .info-value{font-size:.9rem;font-weight:800;color:var(--text);}
+    .info-value.active{color:#34d399;}
+    .info-value.expired{color:#f87171;}
+    .info-value.gold{background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .status-bar{height:6px;background:rgba(255,255,255,.06);border-radius:3px;margin-top:.5rem;overflow:hidden;}
+    .status-bar-fill{height:100%;border-radius:3px;background:linear-gradient(to right,var(--gold-dark),var(--gold));transition:width 1s ease;}
+    .badge{font-weight:700;letter-spacing:.04em;border-radius:6px;padding:.28em .7em;font-size:.67rem;border:1px solid transparent;}
+    .badge-paid{background:rgba(16,185,129,.12);color:#34d399;border-color:rgba(16,185,129,.2);}
+    .badge-pending{background:rgba(245,158,11,.12);color:#fbbf24;border-color:rgba(245,158,11,.2);}
+    .badge-overdue{background:rgba(239,68,68,.12);color:#f87171;border-color:rgba(239,68,68,.2);}
+    .renew-cta{background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.18);border-radius:14px;padding:1.1rem 1.25rem;margin-top:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+    .renew-text{font-size:.82rem;color:var(--text-muted);font-weight:600;}
+    .renew-text strong{color:var(--text);}
+    .btn-renew{background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:#05060a;border:none;font-weight:800;font-size:.78rem;padding:.5rem 1.2rem;border-radius:8px;text-decoration:none;letter-spacing:.04em;white-space:nowrap;}
+    .btn-renew:hover{filter:brightness(1.1);color:#05060a;}
+    .history-section{margin-top:1.75rem;}
+    .history-title{color:var(--text-muted);font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.85rem;}
+    .history-item{display:flex;align-items:center;justify-content:space-between;padding:.7rem 0;border-bottom:1px solid rgba(255,255,255,.04);}
+    .history-item:last-child{border-bottom:0;}
+    .history-date{font-size:.78rem;font-weight:700;color:var(--text);}
+    .history-time{font-size:.7rem;color:var(--text-muted);}
+    .history-dur{font-size:.72rem;color:var(--gold);font-weight:700;}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+    .anim{animation:fadeInUp .45s ease both;}
+    .anim-2{animation:fadeInUp .45s .1s ease both;}
+    .anim-3{animation:fadeInUp .45s .2s ease both;}
+    @media(max-width:576px){.page-wrap{padding:2rem .75rem 3rem;}.info-grid{grid-template-columns:1fr;}.renew-cta{flex-direction:column;align-items:flex-start;}}
+  </style>
+</head>
+<body>
+<nav class="top-nav">
+  <a href="/" class="nav-logo">🏋️ {{ gym_name }}</a>
+  <a href="/" class="nav-back"><i class="bi bi-arrow-left"></i> Home</a>
+</nav>
+<main>
+  <div class="page-wrap">
+    <div class="anim">
+      <div class="eyebrow">Self-Service</div>
+      <h1>Member <span>Portal</span></h1>
+      <p style="color:var(--text-muted);font-size:.88rem;line-height:1.7;margin-bottom:2rem;">
+        Enter your registered WhatsApp number to view your membership status and visit history.
+      </p>
+    </div>
+
+    <!-- LOOKUP FORM -->
+    <div class="card anim-2" style="padding:1.5rem;">
+      <form method="post">
+        <label class="form-label">Your WhatsApp Number</label>
+        <div class="d-flex gap-2">
+          <input type="tel" name="phone" class="form-control"
+                 placeholder="e.g. 60123456789"
+                 value="{{ request.form.get('phone', '') }}" required />
+          <button type="submit" class="btn-lookup">
+            <i class="bi bi-search me-1"></i>Check
+          </button>
+        </div>
+        <div style="color:var(--text-dim);font-size:.68rem;margin-top:.45rem;">Include country code (e.g. 60123456789)</div>
+      </form>
+    </div>
+
+    {% if error %}
+    <div class="error-box anim-3">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+      <div style="margin-top:.6rem;font-size:.78rem;font-weight:500;">
+        Not a member yet? <a href="/join" style="color:var(--gold);">Register here →</a>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if member %}
+    {% set expired = member.expiry_date < today %}
+    {% set days_left = ((member.expiry_date | string) | replace('-','') | int - (today | replace('-','') | int)) %}
+
+    <div class="member-card anim-3">
+      <div class="member-card-header">
+        <div class="member-card-avatar">{{ member.name[0].upper() }}</div>
+      </div>
+      <div class="member-card-body">
+        <div class="member-name">{{ member.name }}</div>
+        <div class="member-plan">{{ member.membership_type.title() }} Member</div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Status</div>
+            <div class="info-value {{ 'expired' if expired else 'active' }}">
+              {{ 'Expired' if expired else 'Active' }}
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Payment</div>
+            <div style="margin-top:.1rem;">
+              <span class="badge badge-{{ member.payment_status }}">{{ member.payment_status.title() }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Expiry Date</div>
+            <div class="info-value {{ 'expired' if expired else '' }}">{{ member.expiry_date }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Member Since</div>
+            <div class="info-value">{{ member.start_date }}</div>
+          </div>
+        </div>
+
+        {% if not expired %}
+        <div style="margin-top:1rem;">
+          <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-muted);margin-bottom:.3rem;">
+            <span>Membership active</span>
+          </div>
+          <div class="status-bar">
+            <div class="status-bar-fill" id="prog-bar" style="width:0%"></div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if member.payment_status != 'paid' or expired %}
+        <div class="renew-cta">
+          <div class="renew-text">
+            {% if expired %}
+              <strong>Membership expired.</strong> Renew to regain access.
+            {% else %}
+              <strong>Payment pending.</strong> Please complete your payment.
+            {% endif %}
+          </div>
+          <a href="https://wa.me/{{ gym_phone }}?text=Hi%2C+I+want+to+renew+my+membership+at+{{ gym_name | urlencode }}.+Name%3A+{{ member.name | urlencode }}"
+             target="_blank" class="btn-renew">
+            <i class="bi bi-whatsapp me-1"></i>Renew via WhatsApp
+          </a>
+        </div>
+        {% endif %}
+
+        {% if history %}
+        <div class="history-section">
+          <div class="history-title"><i class="bi bi-calendar-check" style="margin-right:.3rem;"></i>Recent Check-ins</div>
+          {% for h in history %}
+          <div class="history-item">
+            <div>
+              <div class="history-date">{{ h.check_in[:10] }}</div>
+              <div class="history-time">
+                In: {{ h.check_in[11:16] }}
+                {% if h.check_out %} &nbsp;·&nbsp; Out: {{ h.check_out[11:16] }}{% endif %}
+              </div>
+            </div>
+            {% if h.check_in and h.check_out %}
+            <div class="history-dur" id="dur-{{ loop.index }}"
+                 data-in="{{ h.check_in }}" data-out="{{ h.check_out }}">—</div>
+            {% else %}
+            <span style="font-size:.7rem;color:var(--text-dim);">In Gym</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+    {% endif %}
+
+    {% if not member and not error %}
+    <div style="text-align:center;padding:3rem 0;color:var(--text-dim);" class="anim-3">
+      <i class="bi bi-person-circle" style="font-size:3rem;display:block;margin-bottom:1rem;opacity:.3;"></i>
+      <div style="font-size:.82rem;">Enter your phone number above to view your membership.</div>
+      <div style="margin-top:.75rem;font-size:.78rem;">Not a member? <a href="/join" style="color:var(--gold);">Join now →</a></div>
+    </div>
+    {% endif %}
+
+  </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Duration calculation
+  document.querySelectorAll('[id^="dur-"]').forEach(el => {
+    const ms = new Date(el.dataset.out.replace(' ','T')) - new Date(el.dataset.in.replace(' ','T'));
+    const mins = Math.round(ms / 60000);
+    el.textContent = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
+  });
+  // Membership progress bar (rough approximation based on 1-month cycle)
+  const bar = document.getElementById('prog-bar');
+  if (bar) {
+    // Animate in
+    setTimeout(() => { bar.style.width = '70%'; }, 200);
+  }
+</script>
+</body>
+</html>
